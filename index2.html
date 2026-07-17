@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+  <title>Dashboard</title>
+
+  <style>
+body{
+    margin:0;
+    padding:20px;
+    font-family:'Montserrat', Arial, sans-serif;
+}
+
+.ts-wrapper{
+    width:100%;
+}
+
+.ts-control{
+    border:none !important;
+    box-shadow:none !important;
+    background:white !important;
+    min-height:60px !important;
+    display:flex;
+    align-items:center;
+    padding:0 !important;
+}
+
+.ts-control .item{
+    width:100%;
+    text-align:center;
+    font-size:54px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.ts-dropdown .option{
+    font-size:14px;
+    padding:10px 16px;
+}
+
+#teamLine{
+    width:100%;
+    height:12px;
+    background:#1976d2;
+    transition:background-color .3s;
+}
+  </style>
+</head>
+
+<body>
+<div id="teamToggles"></div>
+<div id="teamLine"></div>
+
+<div id="status">Carregant...</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+const supabase = createClient(
+  "https://lpcizczmkzznbtqptqll.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwY2l6Y3pta3p6bmJ0cXB0cWxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2NjAwMDAsImV4cCI6MjA5OTIzNjAwMH0.dJIsKC4cJfjVxVQmQcAebdXxghiYo0AShV5lZDN5ebs"
+);
+
+let selectedTeam = "";
+let rankingFilter = "teamData";
+let transitionFilter = "";
+let showRankingStats = false;
+let selectedRanking = null;
+let selectedFocus = null;
+let teams = [];
+
+/* ---------------------------
+   CARREGAR EQUIPS
+---------------------------- */
+async function loadTeams() {
+  const { data, error } = await supabase
+    .from("teams")
+    .select(`*`)
+    .limit(200);
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  const map = new Map();
+
+  teams = data.map(team => ({
+    uuid: team.uuid,
+    name: team.name,
+    color: team.color
+  }));
+
+  renderTeamToggles(teams);
+}
+
+
+function renderTeamToggles(teams) {
+
+    const container = document.getElementById("teamToggles");
+    container.innerHTML = "";
+
+    const select = document.createElement("select");
+    select.className = "team-select";
+
+    teams.forEach(team => {
+
+        const option = document.createElement("option");
+        option.value = team.uuid;
+        option.textContent = team.name;
+
+        if (team.uuid === selectedTeam) {
+            option.selected = true;
+        }
+
+        select.appendChild(option);
+
+    });
+
+    container.appendChild(select);
+
+    new TomSelect(select,{
+        controlInput:null,
+    	create:false,
+    	searchField:[],
+    	onChange(value){
+	    selectedTeam = value;
+    	    selectedRanking = null;
+
+	    const team = teams.find(t => t.uuid === value);
+
+	    if(team){
+        	document.getElementById("teamLine").style.backgroundColor = team.color;
+    	    }
+    	}
+    });
+}
+
+/* ---------------------------
+   CARREGAR ACTIONS
+---------------------------- */
+async function loadData() {
+  document.getElementById("status").innerText = "Actualitzant...";
+
+let query = supabase
+  .from("actions")
+  .select(`
+    *,
+    game:games!actions_game_uuid_fkey(*, home_team:teams!games_home_team_uuid_fkey(name, uuid), away_team:teams!games_away_team_uuid_fkey(name, uuid), court:courts!games_court_uuid_fkey(name), competition:competitions!games_competition_uuid_fkey(name)),
+    team:teams!actions_team_uuid_fkey(name, uuid),
+    player:players!actions_player_uuid_fkey(name, shirt_number, uuid),
+    home_lineup:lineups!actions_home_lineup_uuid_fkey(*, player1:players!lineups_player_1_uuid_fkey(*), player2:players!lineups_player_2_uuid_fkey(*), player3:players!lineups_player_3_uuid_fkey(*)),
+    away_lineup:lineups!actions_away_lineup_uuid_fkey(*, player1:players!lineups_player_1_uuid_fkey(*), player2:players!lineups_player_2_uuid_fkey(*), player3:players!lineups_player_3_uuid_fkey(*))
+  `)
+  .order("id", { ascending: false });
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error(error);
+    document.getElementById("status").innerText = "Error carregant dades";
+    return;
+  }
+
+  const clean = data.map(r => ({
+    ...r,
+    home_team_uuid: r.game?.home_team?.uuid,
+    home_team_name: r.game?.home_team?.name,
+    away_team_uuid: r.game?.away_team?.uuid,
+    away_team_name: r.game?.away_team?.name,
+    court_name: r.game?.court?.name,
+    competition_name: r.game?.competition?.name,
+    game_date: r.game?.game_date,
+    action_team_uuid: r.team?.uuid,
+    action_team_name: r.team?.name,
+    action_player_uuid: r.player?.uuid,
+    action_player_name: r.player?.name,
+    home_player_1_uuid: r.home_lineup?.player1?.uuid,
+    home_player_1_name: r.home_lineup?.player1?.name,
+    home_player_2_uuid: r.home_lineup?.player2?.uuid,
+    home_player_2_name: r.home_lineup?.player2?.name,
+    home_player_3_uuid: r.home_lineup?.player3?.uuid,
+    home_player_3_name: r.home_lineup?.player3?.name,
+    away_player_1_uuid: r.away_lineup?.player1?.uuid,
+    away_player_1_name: r.away_lineup?.player1?.name,
+    away_player_2_uuid: r.away_lineup?.player2?.uuid,
+    away_player_2_name: r.away_lineup?.player2?.name,
+    away_player_3_uuid: r.away_lineup?.player3?.uuid,
+    away_player_3_name: r.away_lineup?.player3?.name
+  }));
+
+  renderTable(clean);
+
+  const rankingData = buildRankingGroups(clean);
+  
+  const allGroups = rankingData.groups;
+  const colorScale = rankingData.colorScale;
+
+  const transitionRows = clean.filter(r => r.transition_screen === "TRANSICIÓN");
+
+  const setRows = clean.filter(r => r.transition_screen === "ESTÁTICO" && r.possession_time === null);
+
+  const pbkRows = clean.filter(r => r.possession_time !== null);
+
+  const otherRows = clean.filter(r => r.possession_time === null && r.transition_screen === null);
+
+  const transitionGroups = allGroups.filter(g => g.rows.some(r => r.transition_screen === "TRANSICIÓN"));
+
+  const setGroups = allGroups.filter(g => g.rows.some(r => r.transition_screen === "ESTÁTICO"));
+
+  const pbkGroups = allGroups.filter(g => g.rows.some(r => r.possession_time != null));
+
+  const otherGroups = allGroups.filter(g =>
+    g.rows.some(r => r.possession_time == null && r.transition_screen == null)
+  );
+
+  document.getElementById("transitionCount").innerText = `(${transitionRows.length})`;
+  document.getElementById("setCount").innerText = `(${setRows.length})`;
+  document.getElementById("pbkCount").innerText = `(${pbkRows.length})`;
+  document.getElementById("otherCount").innerText = `(${otherRows.length})`;
+
+  const overallStats = calcStats(clean);
+  const transitionStats = calcStats(transitionRows);
+  const setStats = calcStats(setRows);
+  const pbkStats = calcStats(pbkRows);
+  const otherStats = calcStats(otherRows);
+  const globalColorScale = calcColorScale(clean);
+
+  renderStats("generalStats", clean, false);
+  renderStats("transitionStats", transitionRows, true);
+  renderStats("setStats", setRows, true);
+  renderStats("pbkStats", pbkRows, true);
+  renderStats("otherStats", otherRows, true);
+
+  document.getElementById("rankingStats").style.display = "grid";
+
+  renderRanking(allGroups, overallStats, colorScale, "globalRanking", "rankingStats");
+
+  if(selectedRanking && !isDefense){
+
+    const selectedGroup = allGroups.find(g => g.name.split("|||")[0] === selectedRanking);
+
+    if(selectedGroup){
+
+      const focusRows = selectedGroup.rows;
+      const playerGroups = buildPlayerGroups(focusRows);
+
+      const playerRows = playerGroups.map(p => ({name: p.name, n: p.n, vg: p.vg, ts: p.ts, ppt: p.ppt, tov: p.tov, rows: p.rows}));
+
+      renderPlayerRanking(playerRows, focusRows, overallStats);
+    }
+  } else if (selectedRanking && isDefense) {
+    const selectedGroup = allGroups.find(g => g.name.split("|||")[0] === selectedRanking);
+
+    if(selectedGroup){
+
+      const focusRows = selectedGroup.rows;
+      const nextActionGroups = buildNextActionGroups(focusRows);
+
+      const nextActionRows = nextActionGroups.map(p => ({name: p.name, n: p.n, vg: p.vg, ts: p.ts, ppt: p.ppt, tov: p.tov, rows: p.rows}));
+
+      renderPlayerRanking(nextActionRows, focusRows, overallStats);
+    }
+  } else {
+    renderFocusRanking(allGroups, overallStats);
+  }
+  document.getElementById("status").innerText = `OK - ${data.length} registres`;
+}
+
+
+/* ---------------------------
+   INIT
+---------------------------- */
+loadTeams();
+loadData();
+setInterval(loadData, 5000);
+
+</script>
+
+</body>
+</html>
