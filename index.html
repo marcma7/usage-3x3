@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+  <title>Dashboard</title>
+
+  <style>
+body{
+    margin:0;
+    font-family:'Montserrat',sans-serif;
+    background:#f3f5f8;
+}
+
+#sidebar{
+    width:340px;
+    min-width:340px;
+    height:100vh;
+    background:white;
+    box-shadow:0 0 20px rgba(0,0,0,.15);
+    overflow-y:auto;
+    padding:20px;
+    box-sizing:border-box;
+}
+#main{
+    display:flex;
+    align-items:flex-start;
+}
+
+#sidebar{
+    width:340px;
+    min-width:340px;
+    min-height:calc(100vh - 72px);
+    background:white;
+    box-shadow:0 0 20px rgba(0,0,0,.15);
+    overflow-y:auto;
+    padding:20px;
+    box-sizing:border-box;
+}
+
+#content{
+    flex:1;
+    padding:30px;
+}
+
+#content{
+    flex:1;
+    padding:30px;
+}
+
+.filter-block{
+    margin-top:30px;
+}
+.ts-wrapper{
+    width:100%;
+}
+.ranking-title-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.ranking-extra{
+    font-size:16px;
+    font-weight:700;
+    color:#777;
+}
+
+.ts-control{
+    border:none !important;
+    box-shadow:none !important;
+    background:white !important;
+    min-height:60px !important;
+    display:flex;
+    align-items:center;
+    padding:0 !important;
+}
+.rank-card.linked{
+    background:#e8f2ff;
+    border:2px solid #1976d2;
+    transform:scale(1.02);
+}
+.ranking-subtitle{
+    margin-top:-12px;
+    margin-bottom:18px;
+    color:#777;
+    font-size:16px;
+    font-weight:600;
+}
+
+.ts-control .item{
+    width:100%;
+    text-align:center;
+    font-size:54px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+.player-usage{
+    margin-top:14px;
+    text-align:center;
+    font-size:18px;
+    font-weight:700;
+    color:#1976d2;
+}
+
+.ts-dropdown .option{
+    font-size:14px;
+    padding:10px 16px;
+}
+
+#teamLine{
+    width:100%;
+    height:12px;
+    background:#1976d2;
+    transition:background-color .3s;
+}
+
+.title{
+    font-weight:700;
+    color:#666;
+    margin-bottom:12px;
+    text-transform:uppercase;
+    font-size:13px;
+}
+
+.toggle-btn{
+    width:100%;
+    margin-bottom:8px;
+}
+
+.competition{
+    margin-bottom:18px;
+}
+
+.round{
+    margin-left:18px;
+    margin-top:4px;
+}
+#playerCards{
+    display:flex;
+    gap:20px;
+    margin-bottom:30px;
+    flex-wrap:nowrap;
+}
+
+.player-card{
+    width:210px;
+    min-width:210px;
+    background:white;
+    border-radius:12px;
+    box-shadow:0 4px 10px rgba(0,0,0,.12);
+    padding:18px;
+    cursor:pointer;
+    transition:.15s;
+    box-sizing:border-box;
+}
+
+.player-card:hover{
+    transform:translateY(-3px);
+}
+
+.player-number{
+    font-size:40px;
+    font-weight:800;
+    line-height:1;
+}
+
+.player-name{
+    font-size:20px;
+    font-weight:700;
+    margin-top:12px;
+}
+
+.player-stat{
+    margin-top:8px;
+    color:#666;
+}
+
+.player-role{
+    margin-top:18px;
+    color:#1976d2;
+    font-weight:bold;
+    min-height:20px;
+}
+#rankingFilters{
+    margin:20px 0 25px;
+    display:flex;
+    gap:35px;
+    align-items:center;
+    font-size:15px;
+}
+
+#rankings{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:25px;
+}
+
+.ranking-column{
+    background:white;
+    border-radius:14px;
+    padding:18px;
+    box-shadow:0 4px 10px rgba(0,0,0,.12);
+}
+
+.ranking-title{
+    font-size:22px;
+    font-weight:800;
+    margin:0;
+}
+
+
+.rank-card{
+    display:flex;
+    align-items:center;
+    background:#f7f8fa;
+    border-radius:12px;
+    padding:14px 18px;
+    margin-bottom:14px;
+}
+.rank-card.highlight{
+
+    background:#dfefff;
+    border:2px solid #1976d2;
+    transform:scale(1.02);
+
+}
+
+.rank-position{
+    width:60px;
+    flex-shrink:0;
+    font-size:44px;
+    font-weight:800;
+    color:#d3d3d3;
+    line-height:1;
+    text-align:center;
+}
+
+.rank-info{
+    flex:1;
+    margin-left:10px;
+}
+
+.rank-player{
+    font-size:17px;
+    font-weight:700;
+}
+
+.rank-shot{
+    font-size:22px;
+    font-weight:800;
+    margin-top:2px;
+}
+
+.rank-stats{
+    margin-top:8px;
+    font-size:13px;
+    color:#888;
+}
+.toggle-btn{
+    width:100%;
+    margin-bottom:8px;
+    padding:10px;
+    border:1px solid #d0d0d0;
+    border-radius:8px;
+    background:white;
+    cursor:pointer;
+    transition:.2s;
+}
+.player-card.selected{
+    background:#1976d2;
+    color:white;
+    border:3px solid #1976d2;
+    transform:translateY(-3px);
+}
+
+.player-card.selected .player-stat,
+.player-card.selected .player-role,
+.player-card.selected .player-usage{
+    color:white;
+}
+
+.toggle-btn.active{
+    background:#1976d2;
+    color:white;
+    border-color:#1976d2;
+    font-weight:700;
+}
+  </style>
+</head>
+
+<body>
+    <div id="teamToggles"></div>
+    <div id="teamLine"></div>
+<div id="main">
+<div id="sidebar">
+
+
+
+    <div class="filter-block">
+        <div class="title">Tipo de datos</div>
+
+        <button id="playerData" class="toggle-btn">JUGADOR</button>
+        <button id="teamData" class="toggle-btn">EQUIPO CON JUGADOR EN PISTA</button>
+        <button id="oppData" class="toggle-btn">RIVAL CON JUGADOR EN PISTA</button>
+    </div>
+
+    <div class="filter-block">
+        <div class="title">Acciones</div>
+
+        <button id="allActions" class="toggle-btn">TODAS LAS ACCIONES</button>
+        <button id="onlyCheckballs" class="toggle-btn">SÓLO CHECKBALLS</button>
+        <button id="onlyTrans" class="toggle-btn">SIN CHECKBALLS</button>
+    </div>
+
+    <div class="filter-block">
+        <div class="title">Competiciones</div>
+
+        <div id="competitionFilters"></div>
+    </div>
+
+
+    <div class="filter-block">
+        <div class="title">Rondas</div>
+
+        <div id="roundFilters"></div>
+    </div>
+
+</div>
+
+<div id="content">
+
+    <div id="playerCards"></div>
+
+   <div id="rankings"></div>
+
+    <div id="tableContainer"></div>
+
+</div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+const supabase = createClient(
+  "https://lpcizczmkzznbtqptqll.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwY2l6Y3pta3p6bmJ0cXB0cWxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2NjAwMDAsImV4cCI6MjA5OTIzNjAwMH0.dJIsKC4cJfjVxVQmQcAebdXxghiYo0AShV5lZDN5ebs"
+);
+
+let selectedTeam = "";
+let rankingFilter = "teamData";
+let transitionFilter = "all";
+let showRankingStats = false;
+let selectedRanking = null;
+let selectedFocus = null;
+let teams = [];
+let selectedCompetitions = new Set();
+let selectedRounds = new Set();
+let currentActions = [];
+let currentPlayers = [];
+let selectedPlayers = new Set();
+let selectedRankCard = null;
+let lockedRankKey = null;
+
+/* ---------------------------
+   CARREGAR EQUIPS
+---------------------------- */
+async function loadTeams() {
+  const { data, error } = await supabase
+    .from("teams")
+    .select(`*`)
+    .limit(200);
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+ teams = data.map(team => ({
+    uuid: team.uuid,
+    name: team.name,
+    color: team.color
+  }));
+
+teams.sort((a, b) => {
+
+    const nameA = a.name.toUpperCase();
+    const nameB = b.name.toUpperCase();
+
+    if (nameA === "BARCELONA") return -1;
+    if (nameB === "BARCELONA") return 1;
+
+    if (nameA === "MATARÓ") return nameB === "BARCELONA" ? 1 : -1;
+    if (nameB === "MATARÓ") return nameA === "BARCELONA" ? -1 : 1;
+
+    return nameA.localeCompare(nameB, "es");
+});
+
+const barcelona = teams.find(t => t.name.toUpperCase() === "BARCELONA");
+
+if(barcelona){
+    selectedTeam = barcelona.uuid;
+}
+
+  renderTeamToggles(teams);
+}
+
+
+function updateActionButtons(){
+
+    document
+        .querySelectorAll("#allActions,#onlyCheckballs,#onlyTrans")
+        .forEach(b=>b.classList.remove("active"));
+
+    if(transitionFilter==="all")
+        document.getElementById("allActions").classList.add("active");
+
+    if(transitionFilter==="check")
+        document.getElementById("onlyCheckballs").classList.add("active");
+
+    if(transitionFilter==="nocheck")
+        document.getElementById("onlyTrans").classList.add("active");
+
+}
+
+function initActionButtons(){
+
+    const buttons = {
+        allActions: "all",
+        onlyCheckballs: "1",
+        onlyTrans: "0"
+    };
+
+    Object.entries(buttons).forEach(([id,value])=>{
+
+        const btn=document.getElementById(id);
+
+        btn.onclick=()=>{
+
+            transitionFilter=value;
+
+            Object.keys(buttons).forEach(x=>
+                document.getElementById(x).classList.remove("active")
+            );
+
+            btn.classList.add("active");
+
+            renderPlayerCards(currentPlayers);
+            renderRankings();
+
+        };
+
+    });
+
+    document.getElementById("allActions")
+        .classList.add("active");
+
+}
+
+function renderTeamToggles(teams) {
+
+    const container = document.getElementById("teamToggles");
+    container.innerHTML = "";
+
+    const select = document.createElement("select");
+    select.className = "team-select";
+
+    teams.forEach(team => {
+
+        const option = document.createElement("option");
+        option.value = team.uuid;
+        option.textContent = team.name;
+
+        if (team.uuid === selectedTeam) {
+            option.selected = true;
+        }
+
+        select.appendChild(option);
+
+    });
+
+    container.appendChild(select);
+
+    const ts = new TomSelect(select,{
+        controlInput:null,
+    	create:false,
+    	searchField:[],
+    	onChange(value){
+	    selectedTeam = value;
+    	    selectedRanking = null;
+
+	    const team = teams.find(t => t.uuid === value);
+
+	    if(team){
+        	document.getElementById("teamLine").style.backgroundColor = team.color;
+		selectedCompetitions.clear();
+		selectedRounds.clear();
+
+		loadData();
+    	    }
+    	}
+    });
+
+ts.setValue(selectedTeam || teams[0].uuid);
+}
+
+/* ---------------------------
+   CARREGAR ACTIONS
+---------------------------- */
+async function loadData() {
+
+let query = supabase
+  .from("actions")
+  .select(`
+    *,
+    game:games!actions_game_uuid_fkey(*, home_team:teams!games_home_team_uuid_fkey(name, uuid), away_team:teams!games_away_team_uuid_fkey(name, uuid), competition:competitions!games_competition_uuid_fkey(name)),
+    team:teams!actions_team_uuid_fkey(name, uuid),
+    player:players!actions_player_uuid_fkey(name, shirt_number, uuid),
+    home_lineup:lineups!actions_home_lineup_uuid_fkey(*, player1:players!lineups_player_1_uuid_fkey(*), player2:players!lineups_player_2_uuid_fkey(*), player3:players!lineups_player_3_uuid_fkey(*)),
+    away_lineup:lineups!actions_away_lineup_uuid_fkey(*, player1:players!lineups_player_1_uuid_fkey(*), player2:players!lineups_player_2_uuid_fkey(*), player3:players!lineups_player_3_uuid_fkey(*))
+  `)
+  .order("id", { ascending: false });
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error(error);
+    document.getElementById("status").innerText = "Error carregant dades";
+    return;
+  }
+
+  const clean = data.map(r => ({
+    ...r,
+    home_team_uuid: r.game?.home_team?.uuid,
+    home_team_name: r.game?.home_team?.name,
+    away_team_uuid: r.game?.away_team?.uuid,
+    away_team_name: r.game?.away_team?.name,
+    competition_name: r.game?.competition?.name,
+    game_date: r.game?.game_date,
+    action_team_uuid: r.team?.uuid,
+    action_team_name: r.team?.name,
+    action_player_uuid: r.player?.uuid,
+    action_player_name: r.player?.name,
+    home_player_1_uuid: r.home_lineup?.player1?.uuid,
+    home_player_1_name: r.home_lineup?.player1?.name,
+    home_player_2_uuid: r.home_lineup?.player2?.uuid,
+    home_player_2_name: r.home_lineup?.player2?.name,
+    home_player_3_uuid: r.home_lineup?.player3?.uuid,
+    home_player_3_name: r.home_lineup?.player3?.name,
+    away_player_1_uuid: r.away_lineup?.player1?.uuid,
+    away_player_1_name: r.away_lineup?.player1?.name,
+    away_player_2_uuid: r.away_lineup?.player2?.uuid,
+    away_player_2_name: r.away_lineup?.player2?.name,
+    away_player_3_uuid: r.away_lineup?.player3?.uuid,
+    away_player_3_name: r.away_lineup?.player3?.name,
+    round_block: r.game?.round === "1" || r.game?.round === "2" || r.game?.round === "3" ? "Grupos" : r.game?.round,
+    points: r.action_result === "1+" || r.action_result === "1+PF" || r.action_result === "FT+" ? 1 : (r.action_result === "2+" || r.action_result === "2+PF" ? 2 : 0)
+  }));
+
+currentActions = clean;
+
+  if (!selectedTeam && teams.length > 0)
+    selectedTeam = teams[0].uuid;
+await loadPlayers();
+
+  renderCompetitionFilters();
+  renderRoundFilters();
+renderRankings();
+
+document.getElementById("allActions").onclick = () => {
+
+    transitionFilter = "all";
+    updateActionButtons();
+    renderRankings();
+
+};
+
+document.getElementById("onlyCheckballs").onclick = () => {
+
+    transitionFilter = "check";
+    updateActionButtons();
+    renderRankings();
+
+};
+
+document.getElementById("onlyTrans").onclick = () => {
+
+    transitionFilter = "nocheck";
+    updateActionButtons();
+    renderRankings();
+
+};
+
+updateActionButtons();
+  
+}
+
+
+async function loadPlayers(){
+
+    const {data,error}=await supabase
+        .from("players")
+        .select("*")
+        .eq("team_uuid",selectedTeam)
+        .order("shirt_number");
+
+    if(error){
+        console.error(error);
+        return;
+    }
+
+    renderPlayerCards(data);
+
+}
+
+function getPoints(result){
+
+    switch(result){
+
+        case "1+":
+        case "1+PF":
+        case "FT+":
+            return 1;
+
+        case "2+":
+        case "2+PF":
+            return 2;
+
+        default:
+            return 0;
+
+    }
+
+}
+
+
+function renderPlayerCards(players){
+
+    const container = document.getElementById("playerCards");
+    container.innerHTML = "";
+
+    // Estadístiques acumulades per jugador
+    const stats = {};
+
+    currentActions.forEach(a => {
+
+        if(!stats[a.action_player_uuid]){
+
+            stats[a.action_player_uuid] = {
+                games: new Set(),
+                points: 0
+            };
+
+        }
+
+        stats[a.action_player_uuid].games.add(a.game_uuid);
+        stats[a.action_player_uuid].points += a.points ?? 0;
+
+    });
+
+const teamActions = currentActions.filter(a =>
+    a.action_team_uuid === selectedTeam &&
+    a.action_type &&
+    !a.action_type.startsWith("REBOUND") &&
+    !a.action_type.startsWith("FOUL") &&
+    !a.action_type.startsWith("FREE THROW")
+);
+
+    players.slice(0,6).forEach(player=>{
+
+        const s = stats[player.uuid] || {
+            games:new Set(),
+            points:0
+        };
+
+const onCourtActions = teamActions.filter(a => {
+
+    if (a.home_team_uuid === selectedTeam) {
+        return a.home_player_1_uuid === player.uuid ||
+               a.home_player_2_uuid === player.uuid ||
+               a.home_player_3_uuid === player.uuid;
+    }
+
+    return a.away_player_1_uuid === player.uuid ||
+           a.away_player_2_uuid === player.uuid ||
+           a.away_player_3_uuid === player.uuid;
+
+});
+
+const playerShots = onCourtActions.filter(a =>
+    a.action_player_uuid === player.uuid
+).length;
+
+const usage = onCourtActions.length
+    ? (100 * playerShots / onCourtActions.length).toFixed(1)
+    : "0.0";
+        const games = s.games.size;
+
+        const ppg = games
+            ? (s.points / games).toFixed(1)
+            : "0.0";
+
+        const card = document.createElement("div");
+
+        card.className = "player-card";
+
+        card.innerHTML = `
+            <div class="player-number">
+                #${player.shirt_number ?? ""}
+            </div>
+
+            <div class="player-name">
+                ${player.name}
+            </div>
+
+            <div class="player-stat">
+                ${games} ${games === 1 ? "partido" : "partidos"}
+            </div>
+
+            <div class="player-stat">
+                ${ppg} puntos / partido
+            </div>
+
+<div class="player-usage">
+    USG ${usage}%
+</div>
+
+            <div class="player-role">
+                &nbsp;
+            </div>
+        `;
+
+        card.onclick = () => {
+
+const color = teams.find(t => t.uuid === selectedTeam)?.color || "#1976d2";
+
+if(selectedPlayers.has(player.uuid)){
+    selectedPlayers.delete(player.uuid);
+    card.classList.remove("selected");
+    card.style.background = "";
+    card.style.borderColor = "";
+}else{
+    selectedPlayers.add(player.uuid);
+    card.classList.add("selected");
+    card.style.background = color;
+    card.style.borderColor = color;
+}
+
+renderRankings();
+
+};
+
+        container.appendChild(card);
+
+    });
+
+}
+
+function renderCompetitionFilters(){
+
+    const container = document.getElementById("competitionFilters");
+    container.innerHTML="";
+
+    const competitions=[...new Set(
+
+        currentActions
+            .filter(a =>
+                a.home_team_uuid===selectedTeam ||
+                a.away_team_uuid===selectedTeam
+            )
+            .map(a=>a.competition_name)
+
+    )].sort();
+
+    selectedCompetitions.clear();
+
+    competitions.forEach(comp=>selectedCompetitions.add(comp));
+
+    competitions.forEach(comp=>{
+
+        const label=document.createElement("label");
+
+        label.innerHTML=`
+            <input type="checkbox" checked value="${comp}">
+            ${comp}
+        `;
+
+        label.querySelector("input").onchange=e=>{
+
+            if(e.target.checked)
+                selectedCompetitions.add(comp);
+            else
+                selectedCompetitions.delete(comp);
+
+            renderRoundFilters();
+renderRankings();
+
+
+        };
+
+        container.appendChild(label);
+        container.appendChild(document.createElement("br"));
+
+    });
+
+}
+
+
+function renderRoundFilters(){
+
+    const container=document.getElementById("roundFilters");
+    container.innerHTML="";
+
+    const rounds=[...new Set(
+
+        currentActions
+            .filter(a=>
+
+                (a.home_team_uuid===selectedTeam ||
+                 a.away_team_uuid===selectedTeam)
+
+                &&
+
+                selectedCompetitions.has(a.competition_name)
+
+            )
+            .map(a=>a.round_block)
+
+    )].sort();
+    selectedRounds.clear();
+
+    rounds.forEach(r=>selectedRounds.add(r));
+
+    rounds.forEach(round=>{
+
+        const label=document.createElement("label");
+
+        label.innerHTML=`
+            <input type="checkbox" checked value="${round}">
+            ${round}
+        `;
+
+        label.querySelector("input").onchange=e=>{
+
+            if(e.target.checked)
+                selectedRounds.add(round);
+            else
+                selectedRounds.delete(round);
+
+renderRankings();
+
+        };
+
+        container.appendChild(label);
+        container.appendChild(document.createElement("br"));
+
+    });
+
+}
+
+
+function getFilteredActions(){
+
+    return currentActions.filter(a=>
+
+        (a.home_team_uuid===selectedTeam ||
+         a.away_team_uuid===selectedTeam)
+
+        &&
+
+        selectedCompetitions.has(a.competition_name)
+
+        &&
+
+        selectedRounds.has(a.round_block)
+
+    );
+
+}
+
+
+function calculateShotStats(actions){
+
+    const stats={};
+const totalGames = new Set(actions.map(a => a.game_uuid)).size;
+
+    actions.forEach(a=>{
+
+    if(!a.action_type) return;
+
+   // Només les accions del nostre equip
+if(a.action_team_uuid !== selectedTeam)
+    return;
+
+// Ignorar accions sense jugador
+if(!a.action_player_name)
+    return;
+
+// Ignorar rebots
+if(a.action_type.toUpperCase().includes("REBOUND"))
+    return;
+
+if(a.action_type.toUpperCase().includes("FOUL"))
+    return;
+
+if(a.action_type.toUpperCase().includes("FREE THROW"))
+    return;
+
+if(transitionFilter==="check" && a.checkball != 1)
+    return;
+
+if(transitionFilter==="nocheck" && a.checkball != 0)
+    return;
+
+// Si hi ha jugadors seleccionats, només comptem les seves accions
+if(
+    selectedPlayers.size &&
+    !selectedPlayers.has(a.action_player_uuid)
+){
+    return;
+}
+
+    let type=a.action_type;
+
+    const foul=type.startsWith("FOUL;");
+
+    if(foul)
+        type=type.split(";")[1];
+
+    const key = a.action_player_name + "|||" + type;
+
+    if(!stats[key]){
+
+        stats[key]={
+
+            player:a.action_player_name,
+            type:type,
+            attempts:0,
+            points:0,
+turnovers:0
+
+        };
+
+    }
+
+    const s=stats[key];
+
+        s.points+=getPoints(a.action_result);
+
+        if(foul){
+
+           
+
+        }
+
+        else if(a.action_result==="TO"){
+		s.turnovers++;
+            
+                
+
+        }
+
+        else{
+
+            s.attempts++;
+
+        }
+
+    });
+
+    const values=Object.values(stats);
+
+    const totalAttempts=
+        values.reduce((x,y)=>x+y.attempts,0);
+
+    values.forEach(v=>{
+
+    v.usage =
+        totalAttempts
+        ? v.attempts / totalAttempts
+        : 0;
+
+    v.ppa =
+        v.attempts
+        ? v.points / v.attempts
+        : 0;
+
+    v.tov =
+        v.attempts || v.turnovers
+        ? v.turnovers / (v.attempts + v.turnovers)
+        : 0;
+
+    v.attemptsPerGame =
+        totalGames
+        ? v.attempts / totalGames
+        : 0;
+
+});
+
+    const usage=[...values].sort((a,b)=>b.usage-a.usage);
+
+    usage.forEach((v,i)=>v.rankUsage=i+1);
+
+const efficiency = [...values]
+    .filter(v =>
+    selectedPlayers.size > 0 ||
+    transitionFilter !== "all" ||
+    v.attemptsPerGame >= 1
+)
+    .sort((a,b) => b.ppa - a.ppa);
+
+    efficiency.forEach((v,i)=>v.rankEfficiency=i+1);
+
+    values.forEach(v=>{
+
+        v.rankTotal=
+            v.usage*
+            v.ppa;
+
+    });
+
+    return{
+
+        usage,
+
+        efficiency,
+
+combined:[...values]
+    .filter(v =>
+    selectedPlayers.size > 0 ||
+    transitionFilter !== "all" ||
+    v.attemptsPerGame >= 1
+)
+    .sort((a,b)=>-a.rankTotal+b.rankTotal)
+
+    };
+
+}
+
+
+function renderRankings(){
+
+    const rankings =
+        calculateShotStats(getFilteredActions());
+
+const actions = getFilteredActions();
+
+let attempts = 0;
+let points = 0;
+
+actions.forEach(a => {
+
+    if(!a.action_type) return;
+
+    if(a.action_type.startsWith("REBOUND")) return;
+
+    if(a.action_type.startsWith("FOUL")) return;
+
+    if(a.action_result.startsWith("TO")) return;
+
+if(transitionFilter === "check" && a.checkball != 1)
+    return;
+
+if(transitionFilter === "nocheck" && a.checkball != 0)
+    return;
+
+    if(a.action_team_uuid !== selectedTeam) return;
+
+    points += getPoints(a.action_result);
+
+    attempts++;
+    
+});
+
+const teamEfficiency =
+    attempts ? points / attempts : 0;
+
+    const container =
+        document.getElementById("rankings");
+
+    container.innerHTML="";
+
+    createColumn(
+        container,
+        "TOP USAGE",
+        rankings.usage,
+        x=>(x.usage*100).toFixed(1)+" %"
+    );
+
+    createColumn(
+        container,
+        "TOP EFICIENCIA",
+        rankings.efficiency,
+        x=>x.ppa.toFixed(2)+" pts/acc"
+    );
+
+    createColumn(
+        container,
+        "TOP COMBINADO",
+        rankings.combined,
+        x=>"Score: "+x.rankTotal
+    );
+
+}
+
+
+function createColumn(container,title,data,valueFunction,extraText=""){
+
+    const col=document.createElement("div");
+
+    col.className="ranking-column";
+
+col.innerHTML = `
+<div class="ranking-title-row">
+    <div class="ranking-title">${title}</div>
+    ${extraText ? `<div class="ranking-extra">${extraText}</div>` : ""}
+</div>
+`;
+
+    data.slice(0,5).forEach((row,index)=>{
+
+        const card=document.createElement("div");
+
+        card.className="rank-card";
+const rankKey = row.player + "|||" + row.type;
+card.dataset.rankKey = rankKey;
+card.dataset.player = row.player;
+card.dataset.type = row.type;
+
+        card.innerHTML = `
+    <div class="rank-position">
+        ${index + 1}
+    </div>
+
+    <div class="rank-info">
+
+        <div class="rank-player">
+            ${row.player}
+        </div>
+
+        <div class="rank-shot">
+            ${row.type}
+        </div>
+
+        <div class="rank-stats">
+            USG ${(row.usage*100).toFixed(1)}% · ${row.ppa.toFixed(2)} pts/acc · TO% ${(row.tov*100).toFixed(1)}%
+        </div>
+
+    </div>
+`;
+
+card.onmouseenter = () => {
+
+    if(!lockedRankKey)
+        highlightRankCards(rankKey);
+
+};
+
+card.onmouseleave = () => {
+
+    if(!lockedRankKey)
+        clearRankCards();
+
+};
+
+card.onclick = () => {
+
+    if(lockedRankKey === rankKey){
+
+        lockedRankKey = null;
+        clearRankCards();
+
+    }else{
+
+        lockedRankKey = rankKey;
+        highlightRankCards(rankKey);
+
+    }
+
+};
+
+        col.appendChild(card);
+
+    });
+
+    container.appendChild(col);
+
+}
+
+
+function highlightRankCards(key){
+
+    document.querySelectorAll(".rank-card").forEach(card=>{
+
+        card.classList.toggle(
+            "highlight",
+            card.dataset.rankKey === key
+        );
+
+    });
+
+}
+
+function clearRankCards(){
+
+    document.querySelectorAll(".rank-card")
+        .forEach(c=>c.classList.remove("highlight"));
+
+}
+
+function highlightCards(player, type, active){
+
+    document.querySelectorAll(".rank-card").forEach(card=>{
+
+        const same =
+            card.dataset.player === player &&
+            card.dataset.type === type;
+
+        card.classList.toggle("linked", active && same);
+
+    });
+
+}
+
+/* ---------------------------
+   INIT
+---------------------------- */
+loadTeams();
+
+</script>
+
+</body>
+</html>
