@@ -98,17 +98,16 @@
 		}
 
 		.player-card{
-    			flex:1;
-    			min-width:0;
-    			padding:18px;
+			flex:0 0 calc((100% - 5 * 20px) / 6);
     			box-sizing:border-box;
+
+			padding:18px;
     			background:#fff;
     			border-radius:12px;
-    			box-shadow:0 4px 10px rgba(0,0,0,.12);
-    			cursor:pointer;
-    			transition:transform .15s, box-shadow .2s, background-color .2s, border-color .2s;
 			border:3px solid transparent;
-			box-sizing:border-box;
+    			box-shadow:0 4px 10px rgba(0,0,0,.12);
+			cursor:pointer;
+    			transition:transform .15s, box-shadow .2s, background-color .2s, border-color .2s;
 		}
 
 		.player-card:hover{
@@ -139,9 +138,16 @@
 		}
 
 		.player-name{
-    			margin-top:12px;
-    			font-size:20px;
-    			font-weight:700;
+			margin-top:12px;
+			font-size:20px;
+			font-weight:700;
+			line-height:1.15;
+
+			height:46px;          /* espai per dues línies */
+			display:flex;
+			align-items:flex-start;
+			white-space:normal;
+			overflow-wrap:break-word;
 		}	
 
 		.player-stat{
