@@ -106,12 +106,18 @@
     			border-radius:12px;
     			box-shadow:0 4px 10px rgba(0,0,0,.12);
     			cursor:pointer;
-    			transition:.15s;
+    			transition:transform .15s, box-shadow .2s, background-color .2s, border-color .2s;
+			border:3px solid transparent;
+			box-sizing:border-box;
 		}
 
-		.player-card:hover,
+		.player-card:hover{
+			transform:translateY(-3px);
+		}
+
 		.player-card.selected{
-    			transform:translateY(-3px);
+    			transform:none;
+    			box-shadow: 0 10px 24px rgba(0,0,0,.20), 0 3px 8px rgba(0,0,0,.12);
 		}
 
 		.player-card.selected{
