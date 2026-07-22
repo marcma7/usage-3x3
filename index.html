@@ -453,6 +453,7 @@ let selectedRankCard = null;
 let lockedRankKey = null;
 let selectedShotType = null;
 const SHOT_ORDER = ["PnR handler", "PnR roller", "PnR roll seal", "PnPop", "Flare", "Pindown", "Interior", "Screener", "HO catcher", "HO giver", "Iso", "Low post", "Iso 		seal", "FB 2", "FB closeout", "FB seal", "CnShoot", "CnDrive", "Cut", "Putback", "Misc"];
+let chartWidth = 0;
 
 function renderShotLegend(){
 
@@ -572,7 +573,11 @@ function renderShotChart(data){
 	const svg = document.getElementById("shotChart");
 	svg.innerHTML="";
 
-	const width = document.getElementById("playerCards").clientWidth;
+	if (!chartWidth) {
+		chartWidth = document.getElementById("shotChartWrapper").clientWidth;
+	}
+
+	const width = chartWidth;
 
 	const baseline = 260;
 	const maxHeight = 180;
@@ -1292,6 +1297,11 @@ btn.onclick = () => {
 /* ---------------------------
    INIT
 ---------------------------- */
+window.addEventListener("resize", () => {
+	chartWidth = document.getElementById("shotChartWrapper").clientWidth;
+	renderRankings();
+});
+
 loadTeams();
 renderShotLegend();
 
