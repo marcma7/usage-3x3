@@ -17,22 +17,11 @@
 			align-items:flex-start;
 		}
 
-		#sidebar{
-			width:300px;
-			min-width:300px;
-    			transition:.25s;
-    			overflow:hidden;
-		}
-
-		#sidebar.collapsed{
-			width:0;
-    			min-width:0;
-    			padding:0;
-		}
-
 		#content{
-    			flex:1;
-    			transition:.25s;
+			flex:1;
+			min-width:0;
+			width:100%;
+			transition:.25s;
 		}
 
 		.filter-block{
@@ -169,13 +158,13 @@
 
 		/* ---------- CONTENIDORS ---------- */
 		#rankings{
-    			display:grid;
-    			grid-template-columns:repeat(3,minmax(0,1fr));
-    			gap:25px;
+			width:100%;
+			display:grid;
+			grid-template-columns:repeat(3,minmax(0,1fr));
+			gap:25px;
 		}
 
-		.ranking-column,
-		#shotChartContainer{
+		.ranking-column{
     			width:100%;
     			box-sizing:border-box;
 			padding:18px;
@@ -185,8 +174,12 @@
 		}
 
 		#shotChartContainer{
-    			margin:40px 0;
-    			padding:25px;
+			flex:3;
+			min-width:0;
+			padding:20px;
+			background:#fff;
+			border-radius:14px;
+			box-shadow:0 4px 10px rgba(0,0,0,.12);
 		}
 
 		/* ---------- RANKINGS ---------- */
@@ -320,11 +313,6 @@
     			color:#1976d2;
 		}
 
-		#sidebar.collapsed{
-    			width:48px;
-			min-width:48px;
-		}
-
 		#sidebar.collapsed .filter-block{
     			opacity:0;
     			visibility:hidden;
@@ -333,6 +321,59 @@
 
 		.filter-block{
     			transition:opacity .15s;
+		}
+
+		#shotArea{
+			display:flex;
+			width:100%;
+			gap:20px;
+			margin:40px 0;
+		}
+		
+		#shotChartContainer{
+			display:flex;
+			gap:20px;
+
+			margin:40px 0;
+			padding:20px;
+
+			background:#fff;
+    			border-radius:14px;
+	    		box-shadow:0 4px 10px rgba(0,0,0,.12);
+		}
+
+		#shotChartWrapper{
+			flex:1;
+			min-width:0;
+		}
+
+		#shotLegend{
+			width:300px;
+			flex-shrink:0;
+
+			display:flex;
+			flex-direction:column;
+			gap:8px;
+		}
+
+		#shotChart{
+			width:100%;
+			height:auto;
+		}
+		.shot-type-card{
+			display:flex;
+    			align-items:center;
+    			justify-content:center;
+
+    			border-radius:8px;
+
+    			background:#ececec;
+
+    			font-size:13px;
+    			font-weight:700;
+    			text-align:center;
+
+			min-height:42px;
 		}
   	</style>
 </head>
@@ -371,12 +412,15 @@
 	</div>
 
 	<button id="toggleSidebar">◀</button>
-		
-	<div id="content">
-		<div id="playerCards"></div>
-			<div id="shotChartContainer">
 
-			<svg id="shotChart" width="1100" height="500"></svg>
+	<div id="content">
+    		<div id="playerCards"></div>
+
+    		<div id="shotChartContainer">
+	 		<div id="shotChartWrapper">
+			        <svg id="shotChart"></svg>
+    			</div>
+			<div id="shotLegend"></div>
 		</div>
 
 		<div id="rankings"></div>
@@ -407,7 +451,63 @@ let currentPlayers = [];
 let selectedPlayers = new Set();
 let selectedRankCard = null;
 let lockedRankKey = null;
+let selectedShotType = null;
 const SHOT_ORDER = ["PnR handler", "PnR roller", "PnR roll seal", "PnPop", "Flare", "Pindown", "Interior", "Screener", "HO catcher", "HO giver", "Iso", "Low post", "Iso 		seal", "FB 2", "FB closeout", "FB seal", "CnShoot", "CnDrive", "Cut", "Putback", "Misc"];
+
+function renderShotLegend(){
+
+	const legend = document.getElementById("shotLegend");
+	legend.innerHTML = "";
+
+	const rows = [
+		["PnR handler", "PnR roller", "PnR roll seal", "PnPop"],
+		["Flare", "Pindown", "Interior", "Screener"],
+		["FB 2", "FB closeout", "FB seal"],
+		["Iso", "Low post", "Iso seal"],
+		["HO giver", "HO catcher"],
+		["Putback", "Cut", "Misc"],
+		["CnShoot", "CnDrive"]
+	];
+
+	rows.forEach(row => {
+
+		const rowDiv = document.createElement("div");
+
+		rowDiv.style.display = "grid";
+		rowDiv.style.gridTemplateColumns = "repeat(4, 1fr)";
+		rowDiv.style.gap = "8px";
+
+		row.forEach(type => {
+
+			const card = document.createElement("div");
+			card.className = "shot-type-card";
+			card.textContent = type;
+
+			if(selectedShotType === type){
+				card.style.background = "#1976d2";
+				card.style.color = "white";
+			}
+
+			card.style.cursor = "pointer";
+		
+			card.onclick = () => {
+
+				if(selectedShotType === type){
+					selectedShotType = null;
+				}else{
+					selectedShotType = type;
+				}
+
+				renderRankings();
+				renderShotLegend(); // actualitza el color seleccionat
+			};
+
+			rowDiv.appendChild(card);
+		});
+
+		legend.appendChild(rowDiv);
+	});
+}
 
 /* --------------------------- CARREGAR EQUIPS ---------------------------- */
 async function loadTeams() {
@@ -474,14 +574,17 @@ function renderShotChart(data){
 
 	const width = document.getElementById("playerCards").clientWidth;
 
-	const baseline = 430;
-	const maxHeight = 320;
+	const baseline = 260;
+	const maxHeight = 180;
 	const maxPPA =2.0;
 	let currentX = 0;
 
 	const orderedData = SHOT_ORDER.map(type => {
 		return data.find(x => x.type === type) || {type, attempts:0, points:0, usage:0, ppa:0, tov:0};
 	});
+
+	const topY = 10;
+	const topHeight = 12;
 
 	const yTicks = [0.5,1,1.5,2];
 	yTicks.forEach(value=>{
@@ -532,6 +635,16 @@ function renderShotChart(data){
 		const x = currentX;
 		const y = baseline-h;
 
+		const topRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+
+		topRect.setAttribute("x", currentX);
+		topRect.setAttribute("y", topY);
+		topRect.setAttribute("width", w);
+		topRect.setAttribute("height", topHeight);
+		topRect.setAttribute("fill", selectedShotType === s.type ? "#1976d2" : "#d9d9d9");
+		topRect.setAttribute("stroke", "white");
+		topRect.style.cursor = "pointer";
+
 		//------------ Rectangle -----------
 		const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
 		
@@ -543,6 +656,22 @@ function renderShotChart(data){
 
 	        rect.setAttribute("fill","#1976d2");
 	        rect.setAttribute("stroke","white");
+		rect.style.cursor = "pointer";
+
+		rect.onclick = () => {
+			if(selectedShotType === s.type){
+				selectedShotType = null;
+    			}else{
+        			selectedShotType = s.type;
+    			}
+
+			renderRankings();
+    			renderShotLegend();
+		};
+
+		topRect.onclick = rect.onclick;
+
+		svg.appendChild(topRect);
 
 	        svg.appendChild(rect);
 
@@ -562,7 +691,7 @@ function renderShotChart(data){
 		svg.appendChild(text);
 		currentX += w;
 	});
-	svg.setAttribute("viewBox",`0 0 ${width} 500`);
+	svg.setAttribute("viewBox",`0 0 ${width} 300`);
 	svg.setAttribute("width","100%");
 }
 
@@ -626,6 +755,7 @@ function renderTeamToggles(teams) {
 
 			// Treure qualsevol jugador seleccionat
 			selectedPlayers.clear();
+			selectedShotType = null;
 
 			// Tornar als filtres per defecte
     			transitionFilter = "all";
@@ -954,7 +1084,7 @@ function getFilteredActions(){
 }
 
 
-function calculateShotStats(actions){
+function calculateShotStats(actions, applyShotFilter=true){
 
 	const playerStats = {};
     	const shotStats = {};
@@ -962,6 +1092,7 @@ function calculateShotStats(actions){
 	const totalGames = new Set(actions.map(a => a.game_uuid)).size;
 
 	actions.forEach(a=>{
+		if(applyShotFilter && selectedShotType && a.action_type !== selectedShotType) return;
 		if(!a.action_type) return;
 		if(a.action_team_uuid !== selectedTeam) return;
 		if(!a.action_player_name) return;
@@ -1011,9 +1142,8 @@ function calculateShotStats(actions){
 	});
 
 	const usage = [...playerValues].sort((a,b)=>b.usage-a.usage);
-	const efficiency = [...playerValues].filter(v=> selectedPlayers.size>0 || transitionFilter!=="all" || v.attemptsPerGame>=1).sort((a,b)=>b.ppa-a.ppa);
-	const combined = [...playerValues].filter(v=> selectedPlayers.size>0 || transitionFilter!=="all" || v.attemptsPerGame>=1).sort((a,b)=>b.rankTotal-a.rankTotal);
-
+	const efficiency = [...playerValues].filter(v => selectedShotType || selectedPlayers.size>0 || transitionFilter!=="all" || v.attemptsPerGame>=1).sort((a,b)=>b.ppa-a.ppa);
+	const combined = [...playerValues].filter(v => selectedShotType || selectedPlayers.size>0 || transitionFilter!=="all" || v.attemptsPerGame>=1).sort((a,b)=>b.rankTotal-a.rankTotal);
 	
 	const shotValues = Object.values(shotStats);
 	const totalShotAttempts = shotValues.reduce((x,y)=>x+y.attempts,0);
@@ -1031,8 +1161,18 @@ function calculateShotStats(actions){
 function renderRankings(){
 
 	const actions = getFilteredActions();
-	const rankings = calculateShotStats(actions);
-	renderShotChart(rankings.shotTypes);
+
+	// dades completes sempre pel gràfic
+	const chartStats = calculateShotStats(actions, false);
+	renderShotChart(chartStats.shotTypes);
+
+
+	// dades filtrades pel ranking
+	const rankingStats = calculateShotStats(actions, true);
+
+
+	const rankings = rankingStats;
+
 
 	let attempts = 0;
 	let points = 0;
@@ -1042,19 +1182,21 @@ function renderRankings(){
 		if(a.action_type.startsWith("REBOUND")) return;
 		if(a.action_type.startsWith("FOUL")) return;
 		if(a.action_result.startsWith("TO")) return;
+
 		if(transitionFilter === "check" && a.checkball != 1) return;
 		if(transitionFilter === "nocheck" && a.checkball != 0) return;
+
 		if(a.action_team_uuid !== selectedTeam) return;
-		
+
 		points += getPoints(a.action_result);
 		attempts++;
-    	});
+	});
 
 	const teamEfficiency = attempts ? points / attempts : 0;
-	
+
 	const container = document.getElementById("rankings");
 	container.innerHTML="";
-	
+
 	createColumn(container, "TOP USAGE", rankings.usage, x=>(x.usage*100).toFixed(1)+" %");
 	createColumn(container, "TOP EFICIENCIA", rankings.efficiency, x=>x.ppa.toFixed(2)+" pts/acc");
 	createColumn(container, "TOP COMBINADO", rankings.combined, x=>"Score: "+x.rankTotal);
@@ -1151,6 +1293,7 @@ btn.onclick = () => {
    INIT
 ---------------------------- */
 loadTeams();
+renderShotLegend();
 
 </script>
 </body>
