@@ -1,46 +1,31 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8" />
-  <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
-  <title>Dashboard</title>
+    <head>
+  	<meta charset="UTF-8" />
+  	<link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+  	<title>Dashboard</title>
 
-  <style>
-body{
+  	<style>
+	    body{
     margin:0;
     font-family:'Montserrat',sans-serif;
     background:#f3f5f8;
 }
 
-#sidebar{
-    width:340px;
-    min-width:340px;
-    height:100vh;
-    background:white;
-    box-shadow:0 0 20px rgba(0,0,0,.15);
-    overflow-y:auto;
-    padding:20px;
-    box-sizing:border-box;
-}
 #main{
     display:flex;
     align-items:flex-start;
 }
 
 #sidebar{
-    width:340px;
-    min-width:340px;
+    width:300px;
+    min-width:300px;
     min-height:calc(100vh - 72px);
-    background:white;
-    box-shadow:0 0 20px rgba(0,0,0,.15);
-    overflow-y:auto;
     padding:20px;
     box-sizing:border-box;
-}
-
-#content{
-    flex:1;
-    padding:30px;
+    overflow-y:auto;
+    background:#fff;
+    box-shadow:0 0 20px rgba(0,0,0,.15);
 }
 
 #content{
@@ -51,114 +36,104 @@ body{
 .filter-block{
     margin-top:30px;
 }
+
+.title{
+    margin-bottom:12px;
+    font-size:13px;
+    font-weight:700;
+    text-transform:uppercase;
+    color:#666;
+}
+
 .ts-wrapper{
     width:100%;
 }
-.ranking-title-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:20px;
-}
-
-.ranking-extra{
-    font-size:16px;
-    font-weight:700;
-    color:#777;
-}
 
 .ts-control{
-    border:none !important;
-    box-shadow:none !important;
-    background:white !important;
-    min-height:60px !important;
     display:flex;
     align-items:center;
+    min-height:60px !important;
     padding:0 !important;
-}
-.rank-card.linked{
-    background:#e8f2ff;
-    border:2px solid #1976d2;
-    transform:scale(1.02);
-}
-.ranking-subtitle{
-    margin-top:-12px;
-    margin-bottom:18px;
-    color:#777;
-    font-size:16px;
-    font-weight:600;
+    border:none !important;
+    box-shadow:none !important;
+    background:#fff !important;
 }
 
 .ts-control .item{
     width:100%;
-    text-align:center;
     font-size:54px;
     font-weight:800;
+    text-align:center;
     text-transform:uppercase;
     letter-spacing:1px;
 }
-.player-usage{
-    margin-top:14px;
-    text-align:center;
-    font-size:18px;
-    font-weight:700;
-    color:#1976d2;
-}
 
 .ts-dropdown .option{
-    font-size:14px;
     padding:10px 16px;
+    font-size:14px;
 }
 
 #teamLine{
     width:100%;
     height:12px;
-    background:#1976d2;
-    transition:background-color .3s;
+    transition:.3s;
 }
 
-.title{
-    font-weight:700;
-    color:#666;
-    margin-bottom:12px;
-    text-transform:uppercase;
-    font-size:13px;
-}
+/* ---------- BOTONS ---------- */
 
 .toggle-btn{
     width:100%;
     margin-bottom:8px;
+    padding:10px;
+    border:1px solid #d0d0d0;
+    border-radius:8px;
+    background:#fff;
+    cursor:pointer;
+    transition:.2s;
 }
 
-.competition{
-    margin-bottom:18px;
+.toggle-btn.active{
+    background:#1976d2;
+    border-color:#1976d2;
+    color:#fff;
+    font-weight:700;
 }
 
-.round{
-    margin-left:18px;
-    margin-top:4px;
-}
+/* ---------- TARGETES JUGADORS ---------- */
+
 #playerCards{
     display:flex;
     gap:20px;
-    margin-bottom:30px;
-    flex-wrap:nowrap;
+    margin-bottom:15px;
 }
 
 .player-card{
-    width:210px;
-    min-width:210px;
-    background:white;
+    flex:1;
+    min-width:0;
+    padding:18px;
+    box-sizing:border-box;
+    background:#fff;
     border-radius:12px;
     box-shadow:0 4px 10px rgba(0,0,0,.12);
-    padding:18px;
     cursor:pointer;
     transition:.15s;
-    box-sizing:border-box;
 }
 
-.player-card:hover{
+.player-card:hover,
+.player-card.selected{
     transform:translateY(-3px);
+}
+
+.player-card.selected{
+    background:#1976d2;
+    border:3px solid #1976d2;
+    color:#fff;
+}
+
+.player-card.selected .player-stat,
+.player-card.selected .player-role,
+.player-card.selected .player-usage{
+    color:#fff;
 }
 
 .player-number{
@@ -168,9 +143,9 @@ body{
 }
 
 .player-name{
+    margin-top:12px;
     font-size:20px;
     font-weight:700;
-    margin-top:12px;
 }
 
 .player-stat{
@@ -178,54 +153,86 @@ body{
     color:#666;
 }
 
+.player-usage{
+    margin-top:14px;
+    font-size:18px;
+    font-weight:700;
+    text-align:center;
+    color:#1976d2;
+}
+
 .player-role{
     margin-top:18px;
-    color:#1976d2;
-    font-weight:bold;
     min-height:20px;
+    font-weight:bold;
+    color:#1976d2;
 }
-#rankingFilters{
-    margin:20px 0 25px;
-    display:flex;
-    gap:35px;
-    align-items:center;
-    font-size:15px;
-}
+
+/* ---------- CONTENIDORS ---------- */
 
 #rankings{
     display:grid;
-    grid-template-columns:repeat(3,1fr);
+    grid-template-columns:repeat(3,minmax(0,1fr));
     gap:25px;
 }
 
-.ranking-column{
-    background:white;
-    border-radius:14px;
+.ranking-column,
+#shotChartContainer{
+    width:100%;
+    box-sizing:border-box;
     padding:18px;
+    background:#fff;
+    border-radius:14px;
     box-shadow:0 4px 10px rgba(0,0,0,.12);
 }
 
-.ranking-title{
-    font-size:22px;
-    font-weight:800;
-    margin:0;
+#shotChartContainer{
+    margin:40px 0;
+    padding:25px;
 }
 
+/* ---------- RANKINGS ---------- */
+
+.ranking-title-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.ranking-title{
+    margin:0;
+    font-size:22px;
+    font-weight:800;
+}
+
+.ranking-extra{
+    font-size:16px;
+    font-weight:700;
+    color:#777;
+}
+
+.ranking-subtitle{
+    margin:-12px 0 18px;
+    font-size:16px;
+    font-weight:600;
+    color:#777;
+}
 
 .rank-card{
     display:flex;
     align-items:center;
+    margin-bottom:14px;
+    padding:14px 18px;
     background:#f7f8fa;
     border-radius:12px;
-    padding:14px 18px;
-    margin-bottom:14px;
 }
-.rank-card.highlight{
 
+.rank-card.highlight,
+.rank-card.linked{
     background:#dfefff;
     border:2px solid #1976d2;
     transform:scale(1.02);
-
 }
 
 .rank-position{
@@ -233,9 +240,9 @@ body{
     flex-shrink:0;
     font-size:44px;
     font-weight:800;
-    color:#d3d3d3;
     line-height:1;
     text-align:center;
+    color:#d3d3d3;
 }
 
 .rank-info{
@@ -249,44 +256,15 @@ body{
 }
 
 .rank-shot{
+    margin-top:2px;
     font-size:22px;
     font-weight:800;
-    margin-top:2px;
 }
 
 .rank-stats{
     margin-top:8px;
     font-size:13px;
     color:#888;
-}
-.toggle-btn{
-    width:100%;
-    margin-bottom:8px;
-    padding:10px;
-    border:1px solid #d0d0d0;
-    border-radius:8px;
-    background:white;
-    cursor:pointer;
-    transition:.2s;
-}
-.player-card.selected{
-    background:#1976d2;
-    color:white;
-    border:3px solid #1976d2;
-    transform:translateY(-3px);
-}
-
-.player-card.selected .player-stat,
-.player-card.selected .player-role,
-.player-card.selected .player-usage{
-    color:white;
-}
-
-.toggle-btn.active{
-    background:#1976d2;
-    color:white;
-    border-color:#1976d2;
-    font-weight:700;
 }
   </style>
 </head>
@@ -334,7 +312,19 @@ body{
 
     <div id="playerCards"></div>
 
+<div id="shotChartContainer">
+
+    <svg
+        id="shotChart"
+        width="1100"
+        height="500">
+    </svg>
+
+</div>
+
    <div id="rankings"></div>
+
+
 
     <div id="tableContainer"></div>
 
@@ -365,6 +355,29 @@ let currentPlayers = [];
 let selectedPlayers = new Set();
 let selectedRankCard = null;
 let lockedRankKey = null;
+const SHOT_ORDER = [
+    "PnR handler",
+    "PnR roller",
+    "PnR roll seal",
+    "PnPop",
+    "Flare",
+    "Pindown",
+    "Interior",
+    "Screener",
+    "HO catcher",
+    "HO giver",
+    "Iso",
+    "Low post",
+    "Iso seal",
+    "FB 2",
+    "FB closeout",
+    "FB seal",
+    "CnShoot",
+    "CnDrive",
+    "Cut",
+    "Putback",
+    "Misc"
+];
 
 /* ---------------------------
    CARREGAR EQUIPS
@@ -424,6 +437,188 @@ function updateActionButtons(){
 
     if(transitionFilter==="nocheck")
         document.getElementById("onlyTrans").classList.add("active");
+
+}
+
+function renderShotChart(data){
+
+    const svg =
+        document.getElementById("shotChart");
+
+    svg.innerHTML="";
+
+    const width =
+    document
+        .getElementById("playerCards")
+        .clientWidth;
+
+    const baseline = 430;
+
+    const maxHeight = 320;
+
+    const maxPPA =2.0;
+
+    let currentX = 0;
+
+    const orderedData = SHOT_ORDER.map(type => {
+
+    return data.find(x => x.type === type) || {
+
+        type,
+        attempts:0,
+        points:0,
+        usage:0,
+        ppa:0,
+        tov:0
+
+    };
+
+});
+
+const yTicks = [0.5,1,1.5,2];
+yTicks.forEach(value=>{
+
+    const y =
+        baseline -
+        value/maxPPA*maxHeight;
+
+    const line =
+        document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "line"
+        );
+
+    line.setAttribute("x1",0);
+    line.setAttribute("x2",width);
+
+    line.setAttribute("y1",y);
+    line.setAttribute("y2",y);
+
+    line.setAttribute("stroke","#ddd");
+    line.setAttribute("stroke-dasharray","5 5");
+
+    svg.appendChild(line);
+
+    const label =
+        document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "text"
+        );
+
+    label.setAttribute("x",-10);
+    label.setAttribute("y",y+5);
+
+    label.setAttribute("text-anchor","end");
+
+    label.textContent=value.toFixed(1);
+
+    svg.appendChild(label);
+
+});
+
+const axis =
+document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "line"
+);
+
+axis.setAttribute("x1",0);
+axis.setAttribute("x2",width);
+
+axis.setAttribute("y1",baseline);
+axis.setAttribute("y2",baseline);
+
+axis.setAttribute("stroke","#444");
+axis.setAttribute("stroke-width","2");
+
+svg.appendChild(axis);
+
+orderedData    .forEach(s=>{
+
+        const w =
+            s.usage*width;
+
+        const h =
+            s.ppa/maxPPA*maxHeight;
+
+        const x =
+            currentX;
+
+        const y =
+            baseline-h;
+
+        //-----------------------
+        // Rectangle
+        //-----------------------
+
+        const rect =
+            document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "rect"
+        );
+
+        rect.setAttribute("x",x);
+        rect.setAttribute("y",y);
+
+        rect.setAttribute("width",w);
+        rect.setAttribute("height",h);
+
+        rect.setAttribute("fill","#1976d2");
+
+        rect.setAttribute("stroke","white");
+
+        svg.appendChild(rect);
+
+        //-----------------------
+        // Text
+        //-----------------------
+
+        const text =
+            document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "text"
+        );
+
+        text.setAttribute(
+            "x",
+            x+w/2
+        );
+
+        text.setAttribute(
+            "y",
+            y+h/2
+        );
+
+        text.setAttribute(
+            "text-anchor",
+            "middle"
+        );
+
+        text.setAttribute(
+            "dominant-baseline",
+            "middle"
+        );
+
+        text.setAttribute(
+            "font-size",
+            "15"
+        );
+
+        text.setAttribute(
+            "fill",
+            "white"
+        );
+
+        text.textContent =
+            s.type;
+
+        svg.appendChild(text);
+
+        currentX += w;
+
+    });
+svg.setAttribute("viewBox",`0 0 ${width} 500`);
+svg.setAttribute("width","100%");
 
 }
 
@@ -885,157 +1080,194 @@ function getFilteredActions(){
 
 function calculateShotStats(actions){
 
-    const stats={};
-const totalGames = new Set(actions.map(a => a.game_uuid)).size;
+    const playerStats = {};
+    const shotStats = {};
+
+    const totalGames = new Set(actions.map(a => a.game_uuid)).size;
 
     actions.forEach(a=>{
 
-    if(!a.action_type) return;
+        if(!a.action_type) return;
 
-   // Només les accions del nostre equip
-if(a.action_team_uuid !== selectedTeam)
-    return;
+        if(a.action_team_uuid !== selectedTeam) return;
 
-// Ignorar accions sense jugador
-if(!a.action_player_name)
-    return;
+        if(!a.action_player_name) return;
 
-// Ignorar rebots
-if(a.action_type.toUpperCase().includes("REBOUND"))
-    return;
+        if(a.action_type.includes("REBOUND")) return;
+        if(a.action_type.includes("FOUL")) return;
+        if(a.action_type.includes("FREE THROW")) return;
 
-if(a.action_type.toUpperCase().includes("FOUL"))
-    return;
+        if(transitionFilter==="check" && a.checkball!=1) return;
+        if(transitionFilter==="nocheck" && a.checkball!=0) return;
 
-if(a.action_type.toUpperCase().includes("FREE THROW"))
-    return;
+        if(selectedPlayers.size &&
+           !selectedPlayers.has(a.action_player_uuid))
+            return;
 
-if(transitionFilter==="check" && a.checkball != 1)
-    return;
+        let type = a.action_type;
 
-if(transitionFilter==="nocheck" && a.checkball != 0)
-    return;
+        const foul = type.startsWith("FOUL;");
 
-// Si hi ha jugadors seleccionats, només comptem les seves accions
-if(
-    selectedPlayers.size &&
-    !selectedPlayers.has(a.action_player_uuid)
-){
-    return;
-}
+        if(foul)
+            type = type.split(";")[1];
 
-    let type=a.action_type;
+        //-----------------------
+        // PLAYER + TYPE
+        //-----------------------
 
-    const foul=type.startsWith("FOUL;");
+        const playerKey =
+            a.action_player_name + "|||" + type;
 
-    if(foul)
-        type=type.split(";")[1];
+        if(!playerStats[playerKey]){
 
-    const key = a.action_player_name + "|||" + type;
+            playerStats[playerKey]={
 
-    if(!stats[key]){
+                player:a.action_player_name,
+                type,
 
-        stats[key]={
+                attempts:0,
+                turnovers:0,
+                points:0
 
-            player:a.action_player_name,
-            type:type,
-            attempts:0,
-            points:0,
-turnovers:0
-
-        };
-
-    }
-
-    const s=stats[key];
-
-        s.points+=getPoints(a.action_result);
-
-        if(foul){
-
-           
+            };
 
         }
 
-        else if(a.action_result==="TO"){
-		s.turnovers++;
-            
-                
+        //-----------------------
+        // TYPE
+        //-----------------------
+
+        if(!shotStats[type]){
+
+            shotStats[type]={
+
+                type,
+
+                attempts:0,
+                turnovers:0,
+                points:0
+
+            };
 
         }
 
-        else{
+        const p = playerStats[playerKey];
+        const s = shotStats[type];
 
+        if(a.action_result==="TO"){
+
+            p.turnovers++;
+            s.turnovers++;
+
+        }else{
+
+            p.attempts++;
             s.attempts++;
 
         }
 
+        const pts = getPoints(a.action_result);
+
+        p.points += pts;
+        s.points += pts;
+
     });
 
-    const values=Object.values(stats);
+    //-------------------------
+    // PLAYER RANKINGS
+    //-------------------------
 
-    const totalAttempts=
-        values.reduce((x,y)=>x+y.attempts,0);
+    const playerValues =
+        Object.values(playerStats);
 
-    values.forEach(v=>{
+    const totalAttempts =
+        playerValues.reduce((x,y)=>x+y.attempts,0);
 
-    v.usage =
-        totalAttempts
-        ? v.attempts / totalAttempts
-        : 0;
+    playerValues.forEach(v=>{
 
-    v.ppa =
-        v.attempts
-        ? v.points / v.attempts
-        : 0;
+        v.usage =
+            totalAttempts
+            ? v.attempts/totalAttempts
+            :0;
 
-    v.tov =
-        v.attempts || v.turnovers
-        ? v.turnovers / (v.attempts + v.turnovers)
-        : 0;
+        v.ppa =
+            v.attempts
+            ? v.points/v.attempts
+            :0;
 
-    v.attemptsPerGame =
-        totalGames
-        ? v.attempts / totalGames
-        : 0;
+        v.tov =
+            v.attempts+v.turnovers
+            ? v.turnovers/(v.attempts+v.turnovers)
+            :0;
 
-});
+        v.attemptsPerGame =
+            totalGames
+            ? v.attempts/totalGames
+            :0;
 
-    const usage=[...values].sort((a,b)=>b.usage-a.usage);
+        v.rankTotal =
+            v.usage*v.ppa;
 
-    usage.forEach((v,i)=>v.rankUsage=i+1);
+    });
 
-const efficiency = [...values]
-    .filter(v =>
-    selectedPlayers.size > 0 ||
-    transitionFilter !== "all" ||
-    v.attemptsPerGame >= 1
-)
-    .sort((a,b) => b.ppa - a.ppa);
+    const usage =
+        [...playerValues]
+        .sort((a,b)=>b.usage-a.usage);
 
-    efficiency.forEach((v,i)=>v.rankEfficiency=i+1);
+    const efficiency =
+        [...playerValues]
+        .filter(v=>
+            selectedPlayers.size>0 ||
+            transitionFilter!=="all" ||
+            v.attemptsPerGame>=1
+        )
+        .sort((a,b)=>b.ppa-a.ppa);
 
-    values.forEach(v=>{
+    const combined =
+        [...playerValues]
+        .filter(v=>
+            selectedPlayers.size>0 ||
+            transitionFilter!=="all" ||
+            v.attemptsPerGame>=1
+        )
+        .sort((a,b)=>b.rankTotal-a.rankTotal);
 
-        v.rankTotal=
-            v.usage*
-            v.ppa;
+    //-------------------------
+    // SHOT TYPES
+    //-------------------------
+
+    const shotValues =
+        Object.values(shotStats);
+
+    const totalShotAttempts =
+        shotValues.reduce((x,y)=>x+y.attempts,0);
+
+    shotValues.forEach(v=>{
+
+        v.usage =
+            totalShotAttempts
+            ? v.attempts/totalShotAttempts
+            :0;
+
+        v.ppa =
+            v.attempts
+            ? v.points/v.attempts
+            :0;
+
+        v.tov =
+            v.attempts+v.turnovers
+            ? v.turnovers/(v.attempts+v.turnovers)
+            :0;
 
     });
 
     return{
 
         usage,
-
         efficiency,
+        combined,
 
-combined:[...values]
-    .filter(v =>
-    selectedPlayers.size > 0 ||
-    transitionFilter !== "all" ||
-    v.attemptsPerGame >= 1
-)
-    .sort((a,b)=>-a.rankTotal+b.rankTotal)
+        shotTypes:shotValues
 
     };
 
@@ -1046,6 +1278,8 @@ function renderRankings(){
 
     const rankings =
         calculateShotStats(getFilteredActions());
+
+renderShotChart(rankings.shotTypes);
 
 const actions = getFilteredActions();
 
