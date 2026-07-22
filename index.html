@@ -663,38 +663,52 @@ function renderTeamToggles(teams) {
 ---------------------------- */
 async function loadData() {
 	let query = supabase
-  		.from("actions")
-  		.select(`
-    			*,
-    			game:games!actions_game_uuid_fkey(
-				*, 
-				home_team:teams!games_home_team_uuid_fkey(name, uuid), 
-				away_team:teams!games_away_team_uuid_fkey(name, uuid), 
-				competition:competitions!games_competition_uuid_fkey(name)
-			),
-    			team:teams!actions_team_uuid_fkey(name, uuid),
-			player:players!actions_player_uuid_fkey(name, shirt_number, uuid),
-    			home_lineup:lineups!actions_home_lineup_uuid_fkey(
-				*, 
-				player1:players!lineups_player_1_uuid_fkey(*), 
-				player2:players!lineups_player_2_uuid_fkey(*), 
-				player3:players!lineups_player_3_uuid_fkey(*)
-			),
-    			away_lineup:lineups!actions_away_lineup_uuid_fkey(
-				*, 
-				player1:players!lineups_player_1_uuid_fkey(*), 
-				player2:players!lineups_player_2_uuid_fkey(*), 
-				player3:players!lineups_player_3_uuid_fkey(*)
-			)
-  		`)
-  		.order("id", { ascending: false });
+		.from("actions")
+		.select(`
+        		*,
+        		game:games!actions_game_uuid_fkey!inner(
+            			game_date,
+            			round,
+            			home_team_uuid,
+            			away_team_uuid,
+            			home_team:teams!games_home_team_uuid_fkey(uuid, name),
+            			away_team:teams!games_away_team_uuid_fkey(uuid, name),
+            			competition:competitions!games_competition_uuid_fkey(name)
+        		),
+			team:teams!actions_team_uuid_fkey(uuid,	name),
+		        player:players!actions_player_uuid_fkey(uuid, name, shirt_number),
+		        home_lineup:lineups!actions_home_lineup_uuid_fkey(
+            			player1:players!lineups_player_1_uuid_fkey(uuid,name),
+            			player2:players!lineups_player_2_uuid_fkey(uuid,name),
+            			player3:players!lineups_player_3_uuid_fkey(uuid,name)
+        		),
+        		away_lineup:lineups!actions_away_lineup_uuid_fkey(
+            			player1:players!lineups_player_1_uuid_fkey(uuid,name),
+				player2:players!lineups_player_2_uuid_fkey(uuid,name),
+            			player3:players!lineups_player_3_uuid_fkey(uuid,name)
+        		)
+    		`)
+		.or(`home_team_uuid.eq.${selectedTeam},away_team_uuid.eq.${selectedTeam}`, { foreignTable: "game" }
+    	);
 
-	const { data, error } = await query;
+	const pageSize = 1000;
+	let from = 0;
+	let data = [];
+	
+	while (true) {
+		const { data: page, error } = await query.range(from, from + pageSize - 1);
 
-	if (error) {
-		console.error(error);
-		document.getElementById("status").innerText = "Error carregant dades";
-		return;
+		if (error) {
+			console.error(error);
+			document.getElementById("status").innerText = "Error carregant dades";
+        		return;
+    		}
+
+		data.push(...page);
+
+		// Si s'han retornat menys de 1000 registres, ja hem acabat
+		if (page.length < pageSize) break;
+		from += pageSize;
 	}
 
 	const clean = data.map(r => ({
@@ -728,6 +742,7 @@ async function loadData() {
 	currentActions = clean;
 
 	if (!selectedTeam && teams.length > 0) selectedTeam = teams[0].uuid;
+	console.log(currentActions);
 	await loadPlayers();
 
 	renderCompetitionFilters();
@@ -882,7 +897,7 @@ function renderCompetitionFilters(){
 	const container = document.getElementById("competitionFilters");
 	container.innerHTML="";
 
-	const competitions=[...new Set(currentActions.filter(a => a.home_team_uuid===selectedTeam || a.away_team_uuid===selectedTeam).map(a=>a.competition_name))].sort();
+	const competitions=[...new Set(currentActions.map(a=>a.competition_name))].sort();
 
 	selectedCompetitions.clear();
 
@@ -911,7 +926,7 @@ function renderRoundFilters(){
     	const container=document.getElementById("roundFilters");
     	container.innerHTML="";
 
-	const rounds=[...new Set(currentActions.filter(a=> (a.home_team_uuid===selectedTeam || a.away_team_uuid===selectedTeam) && selectedCompetitions.has(a.competition_name)).map(a=>a.round_block))].sort();
+	const rounds=[...new Set(currentActions.filter(a=> selectedCompetitions.has(a.competition_name)).map(a=>a.round_block))].sort();
 	
 	selectedRounds.clear();
 
@@ -935,7 +950,7 @@ function renderRoundFilters(){
 
 
 function getFilteredActions(){
-	return currentActions.filter(a => (a.home_team_uuid===selectedTeam || a.away_team_uuid===selectedTeam) && selectedCompetitions.has(a.competition_name) && selectedRounds.has(a.round_block));
+	return currentActions.filter(a => selectedCompetitions.has(a.competition_name) && selectedRounds.has(a.round_block));
 }
 
 
