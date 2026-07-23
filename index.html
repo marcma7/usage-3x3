@@ -358,22 +358,25 @@
 		}
 
 		#shotChartWrapper{
-			flex:1;
-			min-width:0;
+    			flex:0 0 70%;
+    			min-width:0;
+    			height:100%;
 		}
 
 		#shotLegend{
-			width:300px;
+			flex:0 0 30%;
 			flex-shrink:0;
-
-			display:flex;
 			flex-direction:column;
+			align-self:stretch;
+			display:grid;
+			grid-template-rows:repeat(7,1fr);
 			gap:8px;
 		}
 
 		#shotChart{
 			width:100%;
-			height:auto;
+			height:100%;
+			display:block;
 		}
 		.shot-type-card{
 			display:flex;
@@ -388,7 +391,25 @@
     			font-weight:700;
     			text-align:center;
 
-			min-height:42px;
+			min-height:13px;
+			height:100%;
+		}
+
+		#shotTooltip{
+    			position:fixed;
+			display:none;
+
+			padding:10px 14px;
+
+			background:white;
+    			border-radius:8px;
+    			box-shadow:0 6px 20px rgba(0,0,0,.25);
+
+			font-size:13px;
+    			line-height:1.5;
+
+			pointer-events:none;
+    			z-index:5000;
 		}
   	</style>
 </head>
@@ -405,6 +426,7 @@
         		<div class="title">Tipo de datos</div>
 			<button id="playerData" class="toggle-btn">JUGADOR</button>
        			<button id="teamData" class="toggle-btn">EQUIPO CON JUGADOR EN PISTA</button>
+			<button id="rivalData" class="toggle-btn">RIVAL</button>
 		       	<button id="oppData" class="toggle-btn">RIVAL CON JUGADOR EN PISTA</button>
 		</div>
 	
@@ -442,6 +464,8 @@
 
 		<div id="tableContainer"></div>
 	</div>
+
+<div id="shotTooltip"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
@@ -453,7 +477,8 @@ const supabase = createClient
 	"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwY2l6Y3pta3p6bmJ0cXB0cWxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2NjAwMDAsImV4cCI6MjA5OTIzNjAwMH0.dJIsKC4cJfjVxVQmQcAebdXxghiYo0AShV5lZDN5ebs");
 
 let selectedTeam = "";
-let rankingFilter = "teamData";
+let rankingFilter = "playerData";
+let rivalMode = false;
 let transitionFilter = "all";
 let showRankingStats = false;
 let selectedRanking = null;
@@ -468,6 +493,7 @@ let selectedRankCard = null;
 let lockedRankKey = null;
 let selectedShotType = null;
 const SHOT_ORDER = ["PnR handler", "PnR roller", "PnR roll seal", "PnPop", "Flare", "Pindown", "Interior", "Screener", "HO catcher", "HO giver", "Iso", "Low post", "Iso 		seal", "FB 2", "FB closeout", "FB seal", "CnShoot", "CnDrive", "Cut", "Putback", "Misc"];
+const SHOT_COLORS = {"PnR handler": "#0D47A1", "PnR roller": "#1976D2", "PnR roll seal": "#42A5F5", "PnPop": "#BBDEFB", "Flare": "#8B0000", "Pindown": "#D32F2F", "Interior": "#FF8A80", "Screener": "#FFEBEE", "HO catcher": "#D7CCC8", "HO giver": "#5D4037", "Iso": "#1B5E20", "Low post": "#4CAF50", "Iso seal": "#C8E6C9", "FB 2": "#E65100", "FB closeout": "#FB8C00", "FB seal": "#FFE0B2", "CnShoot": "#AD1457", "CnDrive": "#F8BBD0", "Cut": "#4A148C", "Putback": "#8E24AA", "Misc": "#E1BEE7"};
 let chartWidth = 0;
 
 function renderShotLegend(){
@@ -493,15 +519,18 @@ function renderShotLegend(){
 		rowDiv.style.gridTemplateColumns = "repeat(4, 1fr)";
 		rowDiv.style.gap = "8px";
 
+		rowDiv.style.height = "100%";
 		row.forEach(type => {
 
 			const card = document.createElement("div");
 			card.className = "shot-type-card";
+			card.style.background = SHOT_COLORS[type] || "#ececec";
+			card.style.color = "white";
 			card.textContent = type;
 
 			if(selectedShotType === type){
-				card.style.background = "#1976d2";
-				card.style.color = "white";
+				card.style.outline = "4px solid #1976d2";
+				card.style.outlineOffset = "2px";
 			}
 
 			card.style.cursor = "pointer";
@@ -583,7 +612,8 @@ function updateActionButtons(){
 
 }
 
-function renderShotChart(data){
+
+function renderShotChart(teamData, filteredData){
 
 	const svg = document.getElementById("shotChart");
 	svg.innerHTML="";
@@ -594,125 +624,320 @@ function renderShotChart(data){
 
 	const width = chartWidth;
 
-	const baseline = 260;
-	const maxHeight = 180;
-	const maxPPA =2.0;
-	let currentX = 0;
+	const baselineTop = 260;
+	const baselineBottom = 260;
 
-	const orderedData = SHOT_ORDER.map(type => {
-		return data.find(x => x.type === type) || {type, attempts:0, points:0, usage:0, ppa:0, tov:0};
-	});
+	const maxHeight = 180;
+	const maxPPA = 2.0;
 
 	const topY = 10;
 	const topHeight = 12;
 
-	const yTicks = [0.5,1,1.5,2];
-	yTicks.forEach(value=>{
-		const y = baseline - value/maxPPA*maxHeight;
-		const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+	const orderedTeamData = SHOT_ORDER.map(type => teamData.find(x=>x.type===type) || {type, attempts:0, points:0, usage:0, ppa:0, tov:0});
 
-		line.setAttribute("x1",0);
-    		line.setAttribute("x2",width);
+	const orderedFilteredData = SHOT_ORDER.map(type => filteredData.find(x=>x.type===type) || {type, attempts:0, points:0, usage:0, ppa:0, tov:0});
 
-		line.setAttribute("y1",y);
-		line.setAttribute("y2",y);
+	function drawChart(data, baseline, direction){
 
-		line.setAttribute("stroke","#ddd");
-    		line.setAttribute("stroke-dasharray","5 5");
+		let currentX = 0;
+		let distX = 0;
 
-		svg.appendChild(line);
+		data.forEach(s=>{
+			const distW = s.usage * width;
+			const distRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
 
-		const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+			distRect.setAttribute("x", distX);
 		
-		label.setAttribute("x",-10);
-    		label.setAttribute("y",y+5);
+			if(direction==="up"){
+				distRect.setAttribute("y", 35);
+			}else{
+				distRect.setAttribute("y", 473);
+			}
 
-		label.setAttribute("text-anchor","end");
+			distRect.setAttribute("width", distW);
+			distRect.setAttribute("height", 12);
+			distRect.setAttribute("fill", SHOT_COLORS[s.type] || "#1976d2");
 
-		label.textContent=value.toFixed(1);
+			if(selectedShotType === s.type){
+				distRect.setAttribute("stroke", "#1976d2");
+				distRect.setAttribute("stroke-width", "4");
+			}else{
+				distRect.setAttribute("stroke", "white");
+				distRect.setAttribute("stroke-width", "1");
+			}
 
-		svg.appendChild(label);
+			distRect.style.cursor="pointer";
 
-	});
+			distRect.onclick=()=>{
+				if(selectedShotType===s.type){
+					selectedShotType=null;
+				}else{
+					selectedShotType=s.type;
+				}
 
-	const axis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+				renderRankings();
+				renderShotLegend();
+			};
+
+			svg.appendChild(distRect);
+
+			const w = s.usage * width;
+			const h = s.ppa/maxPPA*maxHeight;
+
+			const x = currentX;
+
+			const color = SHOT_COLORS[s.type] || "#1976d2";
+			const textColor = getContrastColor(color);
+
+
+			let y;
+
+			if(direction==="up"){
+				y = baseline-h;
+			}else{
+				y = baseline;
+			}
+
+			const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+
+			rect.setAttribute("x",x);
+			rect.setAttribute("y",y);
+			rect.setAttribute("width",w);
+			rect.setAttribute("height", h);
+			rect.setAttribute("fill",color);
+
+
+			if(selectedShotType===s.type){
+				rect.setAttribute("stroke","#1976d2");
+				rect.setAttribute("stroke-width","4");
+			}else{
+				rect.setAttribute("stroke","white");
+				rect.setAttribute("stroke-width","1");
+			}
+
+
+			rect.style.cursor="pointer";
+
+
+			rect.onclick=()=>{
+
+				if(selectedShotType===s.type){
+					selectedShotType=null;
+				}else{
+					selectedShotType=s.type;
+				}
+
+				renderRankings();
+				renderShotLegend();
+			};
+
+
+
+			rect.onmousemove=e=>{
+
+				const tooltip=document.getElementById("shotTooltip");
+
+				tooltip.style.display="block";
+				tooltip.style.left=(e.clientX+15)+"px";
+				tooltip.style.top=(e.clientY+15)+"px";
+
+				tooltip.innerHTML=`
+					<b>${s.type}</b><br>
+					${(s.usage*100).toFixed(1)}% dels tirs<br>
+					${s.ppa.toFixed(2)} punts / tir<br>
+					${s.points} punts<br>
+					${(s.tov*100).toFixed(1)}% pèrdues
+				`;
+			};
+
+
+			rect.onmouseleave=()=>{
+				document.getElementById("shotTooltip").style.display="none";
+			};
+
+
+			svg.appendChild(rect);
+
+
+
+			// TEXT
+			if(w >= 35){
+				const usageTxt = (s.usage * 100).toFixed(1) + "%";
+				const ppaTxt = s.ppa.toFixed(2) + " ppt";
+				const ptsTxt = s.points + " pts";
+
+				const FONT_SIZE = 13;
+				const LINE_HEIGHT = 16;
+
+				const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+
+				text.setAttribute("font-size", FONT_SIZE);
+				text.setAttribute("font-weight", "700");
+				text.setAttribute("text-anchor", "middle");
+
+
+				function fits(line){
+
+					text.innerHTML="";
+
+					const t = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+					t.textContent=line;
+					text.appendChild(t);	
+
+					svg.appendChild(text);
+
+					const result = text.getComputedTextLength() <= w - 8;
+
+					svg.removeChild(text);
+
+					return result;
+				}	
+
+				let lines = null;
+
+				// 1 línia
+				if(fits(`${usageTxt} · ${ppaTxt} · ${ptsTxt}`)){
+					lines = [`${usageTxt} · ${ppaTxt} · ${ptsTxt}`];
+				}
+				// 2 línies
+				else if(fits(`${usageTxt} · ${ppaTxt}`) && fits(ptsTxt)){
+					lines = [`${usageTxt} · ${ppaTxt}`, ptsTxt];
+				}
+				// 3 línies
+				else if(fits(usageTxt) && fits(ppaTxt) && fits(ptsTxt)){
+					lines = [usageTxt, ppaTxt, ptsTxt];
+				}
+
+				// Si no hi cap per amplada, no posem res
+				if(lines){
+					const totalHeight = (lines.length-1)*LINE_HEIGHT;
+					
+					let startY;
+
+					if(direction==="up"){
+						// dins de la barra
+						if(h >= totalHeight + 16){
+							startY = y + h/2 - totalHeight/2;
+							text.setAttribute("fill",textColor);
+						}
+						// sobre la barra
+						else{
+							startY = y - 8 - totalHeight;
+							text.setAttribute("fill","#333");
+						}
+					}else{
+						// dins de la barra
+						if(h >= totalHeight + 16){
+							startY = y + h/2 - totalHeight/2 + 5;
+							text.setAttribute("fill",textColor);
+						}
+						// sota la barra
+						else{
+							startY = y + h + 18;
+							text.setAttribute("fill","#333");
+						}
+
+					}
+
+
+					lines.forEach((line,i)=>{
+						const t = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+						t.setAttribute("x", x+w/2);
+						t.setAttribute("y", startY+i*LINE_HEIGHT);
+						t.textContent=line;
 	
+						text.appendChild(t);
+					});
+	
+					svg.appendChild(text);
+				}
+			}
+			currentX += w;
+			distX += distW;
+		});
+	}
+
+	// ETIQUETES
+
+	const labelTop=document.createElementNS("http://www.w3.org/2000/svg", "text");
+
+	labelTop.setAttribute("x",0);
+	labelTop.setAttribute("y",20);
+	labelTop.setAttribute("font-size","15");
+	labelTop.setAttribute("font-weight","700");
+	labelTop.setAttribute("fill","#555");
+	labelTop.textContent="DATOS DE EQUIPO";
+
+	svg.appendChild(labelTop);
+
+	const labelBottom=document.createElementNS("http://www.w3.org/2000/svg", "text");
+
+	labelBottom.setAttribute("x",0);
+	labelBottom.setAttribute("y",525);
+	labelBottom.setAttribute("font-size","15");
+	labelBottom.setAttribute("font-weight","700");
+	labelBottom.textContent=labelBottom.textContent=getFilteredLabel();
+	labelBottom.setAttribute("fill","#555");
+	svg.appendChild(labelBottom);
+
+	// EIXOS
+	const axis=document.createElementNS("http://www.w3.org/2000/svg", "line");
 	axis.setAttribute("x1",0);
 	axis.setAttribute("x2",width);
-
-	axis.setAttribute("y1",baseline);
-	axis.setAttribute("y2",baseline);
-
+	axis.setAttribute("y1",baselineTop);
+	axis.setAttribute("y2",baselineTop);
 	axis.setAttribute("stroke","#444");
 	axis.setAttribute("stroke-width","2");
 
 	svg.appendChild(axis);
 
-	orderedData.forEach(s=>{
-		const w = s.usage*width;
-		const h = s.ppa/maxPPA*maxHeight;
+	const yTicks=[0.5,1,1.5,2];
 
-		const x = currentX;
-		const y = baseline-h;
+	yTicks.forEach(value=>{
 
-		const topRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+		const yTop = baselineTop - value/maxPPA*maxHeight;
+		const yBottom = baselineBottom + value/maxPPA*maxHeight;
+		[yTop, yBottom].forEach(y=>{
 
-		topRect.setAttribute("x", currentX);
-		topRect.setAttribute("y", topY);
-		topRect.setAttribute("width", w);
-		topRect.setAttribute("height", topHeight);
-		topRect.setAttribute("fill", selectedShotType === s.type ? "#1976d2" : "#d9d9d9");
-		topRect.setAttribute("stroke", "white");
-		topRect.style.cursor = "pointer";
+			const line=document.createElementNS("http://www.w3.org/2000/svg", "line");
 
-		//------------ Rectangle -----------
-		const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-		
-		rect.setAttribute("x",x);
-        	rect.setAttribute("y",y);
+			line.setAttribute("x1",0);
+			line.setAttribute("x2",width);
+			line.setAttribute("y1",y);
+			line.setAttribute("y2",y);
+			line.setAttribute("stroke","#ddd");
+			line.setAttribute("stroke-dasharray","5 5");
 
-        	rect.setAttribute("width",w);
-	        rect.setAttribute("height",h);
+			svg.appendChild(line);
 
-	        rect.setAttribute("fill","#1976d2");
-	        rect.setAttribute("stroke","white");
-		rect.style.cursor = "pointer";
+		});
 
-		rect.onclick = () => {
-			if(selectedShotType === s.type){
-				selectedShotType = null;
-    			}else{
-        			selectedShotType = s.type;
-    			}
-
-			renderRankings();
-    			renderShotLegend();
-		};
-
-		topRect.onclick = rect.onclick;
-
-		svg.appendChild(topRect);
-
-	        svg.appendChild(rect);
-
-	        //------------ Text -----------
-		const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-		
-		text.setAttribute("x", x+w/2);
-		text.setAttribute("y", y+h/2);
-
-		text.setAttribute("text-anchor", "middle");
-		text.setAttribute("dominant-baseline", "middle");
-		
-		text.setAttribute("font-size", "15");
-		text.setAttribute("fill", "white");
-
-	        text.textContent = s.type;
-		svg.appendChild(text);
-		currentX += w;
 	});
-	svg.setAttribute("viewBox",`0 0 ${width} 300`);
-	svg.setAttribute("width","100%");
+
+
+	// DIBUIXAR ELS DOS GRÀFICS
+
+	drawChart(orderedTeamData, baselineTop, "up");
+	drawChart(orderedFilteredData, baselineBottom, "down");
+	
+	svg.setAttribute("viewBox", `0 0 ${width} 530`);
+	svg.setAttribute("width", "100%");
+	svg.setAttribute("preserveAspectRatio", "none");
+}
+
+
+function getContrastColor(hex){
+
+    hex = hex.replace("#","");
+
+    const r = parseInt(hex.substring(0,2),16);
+    const g = parseInt(hex.substring(2,4),16);
+    const b = parseInt(hex.substring(4,6),16);
+
+    // luminància perceptual
+    const luminance = 0.299*r + 0.587*g + 0.114*b;
+
+    return luminance > 170 ? "#222" : "white";
 }
 
 
@@ -1104,7 +1329,7 @@ function getFilteredActions(){
 }
 
 
-function calculateShotStats(actions, applyShotFilter=true){
+function calculateShotStats(actions, applyShotFilter=true, applyPlayerFilters=true){
 
 	const playerStats = {};
     	const shotStats = {};
@@ -1114,14 +1339,113 @@ function calculateShotStats(actions, applyShotFilter=true){
 	actions.forEach(a=>{
 		if(applyShotFilter && selectedShotType && a.action_type !== selectedShotType) return;
 		if(!a.action_type) return;
-		if(a.action_team_uuid !== selectedTeam) return;
 		if(!a.action_player_name) return;
 		if(a.action_type.includes("REBOUND")) return;
         	if(a.action_type.includes("FOUL")) return;
         	if(a.action_type.includes("FREE THROW")) return;
 	        if(transitionFilter==="check" && a.checkball!=1) return;
-	        if(transitionFilter==="nocheck" && a.checkball!=0) return;
-	        if(selectedPlayers.size && !selectedPlayers.has(a.action_player_uuid)) return;
+		if(transitionFilter==="nocheck" && a.checkball!=0) return;
+
+		// ---------------- FILTRES DE JUGADOR ----------------
+				if(applyPlayerFilters){
+
+			// ============================
+			// DATOS DE JUGADOR
+			// ============================
+			if(rankingFilter === "playerData"){
+
+				// només accions del nostre equip
+				if(a.action_team_uuid !== selectedTeam){
+					return;
+				}
+
+				// si hi ha jugadors seleccionats, només els seus tirs
+				if(selectedPlayers.size &&
+				   !selectedPlayers.has(a.action_player_uuid)){
+					return;
+				}
+			}
+
+			// ============================
+			// DATOS DE EQUIPO
+			// ============================
+			else if(rankingFilter === "teamData"){
+
+				// només accions del nostre equip
+				if(a.action_team_uuid !== selectedTeam){
+					return;
+				}
+
+				if(selectedPlayers.size){
+
+					let lineup;
+
+					if(a.home_team_uuid === selectedTeam){
+						lineup = [
+							a.home_player_1_uuid,
+							a.home_player_2_uuid,
+							a.home_player_3_uuid
+						];
+					}else{
+						lineup = [
+							a.away_player_1_uuid,
+							a.away_player_2_uuid,
+							a.away_player_3_uuid
+						];
+					}
+
+					if(![...selectedPlayers].every(p => lineup.includes(p))){
+						return;
+					}
+				}
+			}
+
+			// ============================
+			// RIVAL
+			// ============================
+			else if(rankingFilter === "rivalData"){
+
+				// només accions del rival
+				if(a.action_team_uuid === selectedTeam){
+					return;
+				}
+			}
+
+			// ============================
+			// RIVAL CON JUGADOR EN PISTA
+			// ============================
+			else if(rankingFilter === "oppData"){
+
+				// només accions del rival
+				if(a.action_team_uuid === selectedTeam){
+					return;
+				}
+
+				if(selectedPlayers.size){
+
+					let lineup;
+
+					// alineació del nostre equip
+					if(a.home_team_uuid === selectedTeam){
+						lineup = [
+							a.home_player_1_uuid,
+							a.home_player_2_uuid,
+							a.home_player_3_uuid
+						];
+					}else{
+						lineup = [
+							a.away_player_1_uuid,
+							a.away_player_2_uuid,
+							a.away_player_3_uuid
+						];
+					}
+
+					if(![...selectedPlayers].every(p => lineup.includes(p))){
+						return;
+					}
+				}
+			}
+		}
 
 	        let type = a.action_type;
 	        const playerKey = a.action_player_name + "|||" + type;
@@ -1178,21 +1502,105 @@ function calculateShotStats(actions, applyShotFilter=true){
 }
 
 
+function initPlayerTeamButtons(){
+
+	const buttons = {
+		playerData:"playerData",
+		teamData:"teamData",
+		rivalData:"rivalData",
+		oppData:"oppData"
+	};
+
+	Object.entries(buttons).forEach(([id,value])=>{
+
+		const btn=document.getElementById(id);
+
+		btn.onclick=()=>{
+
+			rankingFilter=value;
+
+			document
+				.querySelectorAll("#playerData,#teamData,#rivalData,#oppData")
+				.forEach(b=>b.classList.remove("active"));
+
+			btn.classList.add("active");
+
+			renderRankings();
+		};
+	});
+
+	document.getElementById("playerData").classList.add("active");
+}
+
+
+function getFilteredLabel(){
+
+	const parts = [];
+
+	if(document.getElementById("playerData").classList.contains("active")){
+		parts.push("Jugador");
+	}
+
+	if(document.getElementById("teamData").classList.contains("active")){
+		parts.push("Equipo con jugador en pista");
+	}
+
+	if(document.getElementById("oppData").classList.contains("active")){
+		parts.push("Rival con jugador en pista");
+	}
+
+	if(document.getElementById("rivalData")?.classList.contains("active")){
+		return "DATOS FILTRADOS: Rival";
+	}
+
+	let txt = "DATOS FILTRADOS";
+
+	if(parts.length){
+		txt += ": " + parts.join(" + ");
+	}
+
+	if(selectedPlayers.size){
+
+		if(selectedPlayers.size === currentPlayers.length){
+			txt += " (todos)";
+		}else{
+			const names = currentPlayers
+				.filter(p => selectedPlayers.has(p.uuid))
+				.map(p => p.name);
+
+			txt += " (" + names.join(", ") + ")";
+		}
+
+	}else{
+		txt += " (todos)";
+	}
+
+	return txt;
+}
+
+
 function renderRankings(){
+
+
+	const allActions = currentActions;
 
 	const actions = getFilteredActions();
 
 	// dades completes sempre pel gràfic
-	const chartStats = calculateShotStats(actions, false);
-	renderShotChart(chartStats.shotTypes);
+	// gràfic superior: sempre equip complet
+const teamChartStats = calculateShotStats(
+	allActions.filter(a => a.action_team_uuid === selectedTeam),
+	false,
+	false
+);
 
+	// gràfic inferior: només filtres de jugador/competició/ronda
+	const filteredChartStats = calculateShotStats(actions, false, true);
 
-	// dades filtrades pel ranking
-	const rankingStats = calculateShotStats(actions, true);
+	renderShotChart(teamChartStats.shotTypes, filteredChartStats.shotTypes);
 
-
-	const rankings = rankingStats;
-
+	// rankings sí que utilitzen selecció de tipus de tir
+	const rankings = calculateShotStats(actions, true, true);
 
 	let attempts = 0;
 	let points = 0;
@@ -1216,6 +1624,13 @@ function renderRankings(){
 
 	const container = document.getElementById("rankings");
 	container.innerHTML="";
+
+	if(rankingFilter === "rivalData" || rankingFilter === "oppData"){
+		container.style.display = "none";
+		return;
+	}else{
+		container.style.display = "grid";   // o "flex" si així el tens al CSS
+	}
 
 	createColumn(container, "TOP USAGE", rankings.usage, x=>(x.usage*100).toFixed(1)+" %");
 	createColumn(container, "TOP EFICIENCIA", rankings.efficiency, x=>x.ppa.toFixed(2)+" pts/acc");
@@ -1319,6 +1734,7 @@ window.addEventListener("resize", () => {
 
 loadTeams();
 renderShotLegend();
+initPlayerTeamButtons();
 
 </script>
 </body>
