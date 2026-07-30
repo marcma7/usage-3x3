@@ -124,9 +124,9 @@
     			color:#fff;
 		}
 
-		.player-card.selected .player-stat, 
+		.player-card.selected .player-summary, 
 		.player-card.selected .player-role,
-		.player-card.selected .player-usage{
+		.player-card.selected .player-summary-filtered{
     			color:#fff;
 		}
 
@@ -411,6 +411,60 @@
 			pointer-events:none;
     			z-index:5000;
 		}
+
+.player-summary{
+
+    margin-top:12px;
+
+    font-size:16px;
+    font-weight:700;
+}
+
+.player-summary-filtered{
+
+    margin-top:6px;
+
+    font-size:14px;
+
+    color:#777;
+
+    font-weight:400;
+}
+
+
+@media (max-width: 768px){
+
+    #main{
+        flex-direction:column;
+    }
+
+    #sidebar{
+        width:100%;
+        min-width:100%;
+        min-height:auto;
+        margin-right:0;
+    }
+
+    #playerCards{
+        display:grid;
+        grid-template-columns:repeat(2,1fr);
+        gap:12px;
+    }
+
+    .player-card{
+        flex:none;
+        width:auto;
+    }
+
+    #rankings{
+        grid-template-columns:1fr;
+    }
+
+    #shotChartContainer{
+        flex-direction:column;
+    }
+
+}
   	</style>
 </head>
 
@@ -1004,7 +1058,7 @@ function renderTeamToggles(teams) {
 
 			// Tornar als filtres per defecte
     			transitionFilter = "all";
-    			rankingFilter = "teamData";
+    			rankingFilter = "playerData";
 
 			// Eliminar competicions i rondes seleccionades
     			selectedCompetitions.clear();
@@ -1117,7 +1171,6 @@ async function loadData() {
 	currentActions = clean;
 
 	if (!selectedTeam && teams.length > 0) selectedTeam = teams[0].uuid;
-	console.log(currentActions);
 	await loadPlayers();
 
 	renderCompetitionFilters();
@@ -1129,19 +1182,22 @@ async function loadData() {
 	document.getElementById("allActions").onclick = () => {
 		transitionFilter = "all";
     		updateActionButtons();
-    		renderRankings();
+renderPlayerCards(currentPlayers);
+renderRankings();
 	};
 
 	document.getElementById("onlyCheckballs").onclick = () => {
 		transitionFilter = "check";
 		updateActionButtons();
-   		renderRankings();
+renderPlayerCards(currentPlayers);
+renderRankings();
 	};
 
 	document.getElementById("onlyTrans").onclick = () => {
 		transitionFilter = "nocheck";
     		updateActionButtons();
-    		renderRankings();
+renderPlayerCards(currentPlayers);
+renderRankings();
 	};
 
 	updateActionButtons();
@@ -1185,69 +1241,112 @@ function getPoints(result){
 }
 
 
+function getPlayerCardStats(playerUuid, filtered = false){
+
+    // Accions a utilitzar
+    let actions = filtered ? getFilteredActions() : currentActions;
+
+    // Només accions del nostre equip
+    actions = actions.filter(a =>
+        a.action_team_uuid === selectedTeam &&
+        a.action_type &&
+        !a.action_type.startsWith("REBOUND") &&
+        !a.action_type.startsWith("FOUL") &&
+        !a.action_type.startsWith("FREE THROW")
+    );
+
+    // Només s'aplica el filtre de checkball
+    if(filtered){
+
+        if(transitionFilter === "check"){
+            actions = actions.filter(a => a.checkball == 1);
+        }
+
+        if(transitionFilter === "nocheck"){
+            actions = actions.filter(a => a.checkball == 0);
+        }
+    }
+
+    // Partits jugats
+    const games = new Set(
+        actions
+            .filter(a => a.action_player_uuid === playerUuid)
+            .map(a => a.game_uuid)
+    ).size;
+
+    // Punts
+    const points = actions
+        .filter(a => a.action_player_uuid === playerUuid)
+        .reduce((x,a)=>x+(a.points ?? 0),0);
+
+    // Accions amb el jugador a pista
+    const onCourt = actions.filter(a=>{
+
+        if(a.home_team_uuid === selectedTeam){
+            return a.home_player_1_uuid === playerUuid ||
+                   a.home_player_2_uuid === playerUuid ||
+                   a.home_player_3_uuid === playerUuid;
+        }
+
+        return a.away_player_1_uuid === playerUuid ||
+               a.away_player_2_uuid === playerUuid ||
+               a.away_player_3_uuid === playerUuid;
+    });
+
+    // Tirs del jugador
+    const playerShots = onCourt.filter(a=>a.action_player_uuid===playerUuid).length;
+
+    return{
+
+        games,
+
+        ppg: games ? (points/games).toFixed(1) : "0.0",
+
+        usage: onCourt.length
+            ? (100*playerShots/onCourt.length).toFixed(1)
+            : "0.0"
+
+    };
+}
+
+
 function renderPlayerCards(players){
 
 	const container = document.getElementById("playerCards");
     	container.innerHTML = "";
 
-	// Estadístiques acumulades per jugador
-    	const stats = {};
-
-	currentActions.forEach(a => {
-		if(!stats[a.action_player_uuid]){
-			stats[a.action_player_uuid] = {games: new Set(), points: 0};
-		}
-
-	        stats[a.action_player_uuid].games.add(a.game_uuid);
-        	stats[a.action_player_uuid].points += a.points ?? 0;
-	});
-
-	const teamActions = currentActions.filter(a =>
-		a.action_team_uuid === selectedTeam &&
-    		a.action_type &&
-    		!a.action_type.startsWith("REBOUND") &&
-    		!a.action_type.startsWith("FOUL") &&
-    		!a.action_type.startsWith("FREE THROW")
-	);
-
 	players.slice(0,6).forEach(player=>{
-		const s = stats[player.uuid] || {games:new Set(), points:0};
-		
-		const onCourtActions = teamActions.filter(a => {
-			if (a.home_team_uuid === selectedTeam) {
-				return a.home_player_1_uuid === player.uuid ||
-					a.home_player_2_uuid === player.uuid ||
-					a.home_player_3_uuid === player.uuid;
-    			}
+		const total = getPlayerCardStats(player.uuid,false);
 
-			return a.away_player_1_uuid === player.uuid ||
-           			a.away_player_2_uuid === player.uuid ||
-           			a.away_player_3_uuid === player.uuid;
-
-		});
-	
-		const playerShots = onCourtActions.filter(a => a.action_player_uuid === player.uuid).length;
-
-		const usage = onCourtActions.length ? (100 * playerShots / onCourtActions.length).toFixed(1) : "0.0";
-        	const games = s.games.size;
-	        const ppg = games ? (s.points / games).toFixed(1) : "0.0";
+		const filtered = getPlayerCardStats(player.uuid,true);
 	
 		const card = document.createElement("div");
 
 	        card.className = "player-card";
 
+const color = teams.find(t => t.uuid === selectedTeam)?.color || "#1976d2";
+
+if (selectedPlayers.has(player.uuid)) {
+    card.classList.add("selected");
+    card.style.background = color;
+    card.style.borderColor = color;
+}
+
 	        card.innerHTML = `
         		<div class="player-number">#${player.shirt_number ?? ""}</div>
 			<div class="player-name">${player.name}</div>
-			<div class="player-stat">${games} ${games === 1 ? "partido" : "partidos"}</div>
-			<div class="player-stat">${ppg} puntos / partido</div>
-			<div class="player-usage">USG ${usage}%</div>
+			<div class="player-summary">
+				${total.games}p · ${total.ppg}ppg · USG ${total.usage}%
+			</div>
+
+			<div class="player-summary-filtered">
+				${filtered.games}p · ${filtered.ppg}ppg · USG ${filtered.usage}%
+			</div>
 			<div class="player-role">&nbsp;</div>
         	`;
 
 	        card.onclick = () => {
-			const color = teams.find(t => t.uuid === selectedTeam)?.color || "#1976d2";
-	
+			
 			if(selectedPlayers.has(player.uuid)){
     				selectedPlayers.delete(player.uuid);
     				card.classList.remove("selected");
@@ -1282,13 +1381,14 @@ function renderCompetitionFilters(){
 		label.innerHTML=`
 			<input type="checkbox" checked value="${comp}">${comp}`;
 			
-		label.querySelector("input").onchange=e=>{
-			if(e.target.checked) selectedCompetitions.add(comp);
-            		else selectedCompetitions.delete(comp);
-			
-			renderRoundFilters();
-			renderRankings();
-        	};
+		label.querySelector("input").onchange = e => {
+    if(e.target.checked) selectedCompetitions.add(comp);
+    else selectedCompetitions.delete(comp);
+
+    renderRoundFilters();
+    renderPlayerCards(currentPlayers);
+    renderRankings();
+};
 		
 		container.appendChild(label);
        		container.appendChild(document.createElement("br"));
@@ -1311,12 +1411,13 @@ function renderRoundFilters(){
 		label.innerHTML=`
 			<input type="checkbox" checked value="${round}">${round}`;
 
-	        label.querySelector("input").onchange=e=>{
-			if(e.target.checked) selectedRounds.add(round);
-            		else selectedRounds.delete(round);
+	        label.querySelector("input").onchange = e => {
+    if(e.target.checked) selectedRounds.add(round);
+    else selectedRounds.delete(round);
 
-			renderRankings();
-		};
+    renderPlayerCards(currentPlayers);
+    renderRankings();
+};
 
 	        container.appendChild(label);
         	container.appendChild(document.createElement("br"));
