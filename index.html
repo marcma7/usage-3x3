@@ -412,6 +412,23 @@
 			pointer-events:none;
     			z-index:5000;
 		}
+#statsTable td{
+    position:relative;
+}
+
+.turnover-dot{
+    position:absolute;
+
+    top:5px;
+    right:5px;
+
+    width:9px;
+    height:9px;
+
+    background:#d32f2f;
+
+    border-radius:50%;
+}
 
 .player-summary{
 
@@ -432,6 +449,255 @@
     font-weight:400;
 }
 
+/* ---------- TOGGLE DE VISTA ---------- */
+
+#viewToggle{
+    display:flex;
+    width:100%;
+    gap:8px;
+    margin:20px 0 0;
+    box-sizing:border-box;
+}
+
+.view-toggle-btn{
+    flex:1;
+    padding:10px 16px;
+
+    border:1px solid #d0d0d0;
+    border-radius:8px;
+
+    background:#fff;
+    color:#333;
+
+    cursor:pointer;
+    transition:.2s;
+
+    font-size:13px;
+    font-weight:600;
+}
+
+.view-toggle-btn:hover{
+    border-color:#1976d2;
+    color:#1976d2;
+}
+
+.view-toggle-btn.active{
+    background:#1976d2;
+    border-color:#1976d2;
+    color:#fff;
+    font-weight:700;
+}
+
+/* ---------- TAULA ---------- */
+
+#tableContainer{
+    display:none;
+    width:100%;
+    margin-top:20px;
+}
+
+#tableMetricToggle{
+    display:flex;
+    width:100%;
+    gap:8px;
+    margin-bottom:15px;
+}
+
+.table-metric-btn{
+    flex:1;
+
+    padding:10px 16px;
+
+    border:1px solid #d0d0d0;
+    border-radius:8px;
+
+    background:#fff;
+    color:#333;
+
+    cursor:pointer;
+    transition:.2s;
+
+    font-size:13px;
+    font-weight:600;
+}
+
+.table-metric-btn:hover{
+    border-color:#1976d2;
+    color:#1976d2;
+}
+
+.table-metric-btn.active{
+    background:#1976d2;
+    border-color:#1976d2;
+    color:#fff;
+    font-weight:700;
+}
+
+#tableWrapper{
+    width:100%;
+    overflow-x:auto;
+
+    background:#fff;
+    border-radius:14px;
+    box-shadow:0 4px 10px rgba(0,0,0,.12);
+}
+
+#statsTable{
+    width:100%;
+    border-collapse:collapse;
+    min-width:1100px;
+}
+
+#statsTable th{
+    padding:14px 10px;
+
+    background:#f7f8fa;
+
+    border-bottom:2px solid #ddd;
+
+    font-size:12px;
+    font-weight:800;
+
+    text-align:center;
+    white-space:nowrap;
+}
+
+#statsTable th:first-child{
+    text-align:left;
+    width:180px;
+    position:sticky;
+    left:0;
+    z-index:3;
+}
+
+#statsTable td{
+    padding:12px 10px;
+
+    border-bottom:1px solid #eee;
+
+    font-size:14px;
+    font-weight:600;
+
+    text-align:center;
+    white-space:nowrap;
+}
+
+#statsTable td:first-child{
+    text-align:left;
+
+    position:sticky;
+    left:0;
+    z-index:2;
+
+    background:#fff;
+
+    font-weight:700;
+}
+
+#statsTable tbody tr:hover td{
+    background:#f7f8fa;
+}
+
+#statsTable tbody tr:hover td:first-child{
+    background:#f7f8fa;
+}
+
+.table-player-number{
+    font-size:16px;
+    font-weight:800;
+    margin-right:8px;
+}
+
+.table-player-name{
+    font-weight:700;
+}
+
+#statsTable th{
+    padding:14px 6px;
+
+    background:#f7f8fa;
+    border-bottom:2px solid #ddd;
+
+    font-size:12px;
+    font-weight:800;
+    text-align:center;
+
+    white-space:normal;
+    overflow-wrap:break-word;
+    line-height:1.15;
+
+    vertical-align:middle;
+}
+
+
+#tableWrapper{
+    width:100%;
+    overflow-x:auto;
+
+    background:#fff;
+    border-radius:14px;
+    box-shadow:0 4px 10px rgba(0,0,0,.12);
+}
+
+#statsTable{
+    border-collapse:collapse;
+    table-layout:fixed;
+
+    width:max-content;
+    min-width:100%;
+}
+
+#statsTable th,
+#statsTable td{
+    box-sizing:border-box;
+}
+
+#statsTable th{
+    padding:14px 6px;
+
+    background:#f7f8fa;
+    border-bottom:2px solid #ddd;
+
+    font-size:12px;
+    font-weight:800;
+    text-align:center;
+
+    white-space:normal;
+    overflow-wrap:break-word;
+    line-height:1.15;
+
+    vertical-align:middle;
+}
+
+#statsTable td{
+    padding:12px 6px;
+
+    border-bottom:1px solid #eee;
+
+    font-size:14px;
+    font-weight:600;
+
+    text-align:center;
+
+    white-space:nowrap;
+
+    vertical-align:middle;
+}
+
+#statsTable th:first-child,
+#statsTable td:first-child{
+    position:sticky;
+    left:0;
+    z-index:2;
+
+    background:#fff;
+
+    text-align:left;
+}
+
+#statsTable th:first-child{
+    z-index:3;
+}
 
 @media (max-width: 768px){
 
@@ -506,6 +772,12 @@
 	<button id="toggleSidebar">◀</button>
 
 	<div id="content">
+		<div id="viewToggle">
+    			<button id="viewChart" class="view-toggle-btn active">GRÀFIC</button>
+    			<button id="viewRankings" class="view-toggle-btn">RANKINGS</button>
+    			<button id="viewTable" class="view-toggle-btn">TAULA</button>
+		</div>
+
     		<div id="playerCards"></div>
 
     		<div id="shotChartContainer">
@@ -517,7 +789,22 @@
 
 		<div id="rankings"></div>
 
-		<div id="tableContainer"></div>
+		<div id="tableContainer">
+
+    <div id="tableMetricToggle">
+        <button id="tableMetricUSG" class="table-metric-btn active">USG%</button>
+        <button id="tableMetricPPA" class="table-metric-btn">PPA</button>
+        <button id="tableMetricTOV" class="table-metric-btn">TO%</button>
+    </div>
+
+    <div id="tableWrapper">
+        <table id="statsTable">
+            <thead></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+</div>
 	</div>
 
 <div id="shotTooltip"></div>
@@ -550,6 +837,575 @@ let selectedShotType = null;
 const SHOT_ORDER = ["PnR handler", "PnR roller", "PnR roll seal", "PnPop", "Flare", "Pindown", "Interior", "Screener", "HO catcher", "HO giver", "Iso", "Low post", "Iso 		seal", "FB 2", "FB closeout", "FB seal", "CnShoot", "CnDrive", "Cut", "Putback", "Misc"];
 const SHOT_COLORS = {"PnR handler": "#0D47A1", "PnR roller": "#1976D2", "PnR roll seal": "#42A5F5", "PnPop": "#BBDEFB", "Flare": "#8B0000", "Pindown": "#D32F2F", "Interior": "#FF8A80", "Screener": "#FFEBEE", "HO catcher": "#D7CCC8", "HO giver": "#5D4037", "Iso": "#1B5E20", "Low post": "#4CAF50", "Iso seal": "#C8E6C9", "FB 2": "#E65100", "FB closeout": "#FB8C00", "FB seal": "#FFE0B2", "CnShoot": "#AD1457", "CnDrive": "#F8BBD0", "Cut": "#4A148C", "Putback": "#8E24AA", "Misc": "#E1BEE7"};
 let chartWidth = 0;
+let currentView = "chart";
+let currentTableMetric = "usage";
+
+const LEAGUE_AVG_PPA = 0.9;
+const LEAGUE_AVG_TOV = 0.15;
+
+const USG_THRESHOLD = 0.10;
+const PPA_HIGH = 0.9;
+const PPA_LOW = 0.7;
+
+
+function getTableCellColor(usage, ppa){
+
+    // USG >= 10%
+    if(usage >= USG_THRESHOLD){
+
+        // Verd
+        if(ppa >= PPA_HIGH){
+            return "#C8E6C9";
+        }
+
+        // Groc
+        if(ppa >= PPA_LOW && ppa < PPA_HIGH){
+            return "#FFF9C4";
+        }
+
+        // Vermell
+        if(ppa < PPA_LOW){
+            return "#FFCDD2";
+        }
+    }
+
+    // USG < 10% i PPA >= 1.1
+    if(usage < USG_THRESHOLD && ppa >= PPA_HIGH){
+        return "#BBDEFB";
+    }
+
+    // Resta de casos: sense color
+    return "";
+}
+
+
+function hasHighTurnover(stats){
+
+    if(!stats) return false;
+
+    return stats.tov >= LEAGUE_AVG_TOV;
+}
+
+
+function calculateTableStats(actions){
+
+    const playerStats = {};
+
+    actions.forEach(a => {
+
+        if(!a.action_type) return;
+        if(!a.action_player_uuid) return;
+
+        // Excloure accions que no són tirs/accions de tir
+        if(a.action_type.startsWith("REBOUND")) return;
+        if(a.action_type.startsWith("FOUL")) return;
+        if(a.action_type.startsWith("FREE THROW")) return;
+
+        // Filtre checkball
+        if(transitionFilter === "check" && a.checkball != 1) return;
+        if(transitionFilter === "nocheck" && a.checkball != 0) return;
+
+        // ---------------------------
+        // FILTRE DE DADES
+        // ---------------------------
+
+        if(rankingFilter === "playerData"){
+
+            if(a.action_team_uuid !== selectedTeam){
+                return;
+            }
+
+            if(
+                selectedPlayers.size &&
+                !selectedPlayers.has(a.action_player_uuid)
+            ){
+                return;
+            }
+        }
+
+        else if(rankingFilter === "teamData"){
+
+            if(a.action_team_uuid !== selectedTeam){
+                return;
+            }
+
+            if(selectedPlayers.size){
+
+                let lineup;
+
+                if(a.home_team_uuid === selectedTeam){
+
+                    lineup = [
+                        a.home_player_1_uuid,
+                        a.home_player_2_uuid,
+                        a.home_player_3_uuid
+                    ];
+
+                }else{
+
+                    lineup = [
+                        a.away_player_1_uuid,
+                        a.away_player_2_uuid,
+                        a.away_player_3_uuid
+                    ];
+                }
+
+                if(![...selectedPlayers].every(p => lineup.includes(p))){
+                    return;
+                }
+            }
+        }
+
+        else if(rankingFilter === "rivalData"){
+
+            if(a.action_team_uuid === selectedTeam){
+                return;
+            }
+        }
+
+        else if(rankingFilter === "oppData"){
+
+            if(a.action_team_uuid === selectedTeam){
+                return;
+            }
+
+            if(selectedPlayers.size){
+
+                let lineup;
+
+                if(a.home_team_uuid === selectedTeam){
+
+                    lineup = [
+                        a.home_player_1_uuid,
+                        a.home_player_2_uuid,
+                        a.home_player_3_uuid
+                    ];
+
+                }else{
+
+                    lineup = [
+                        a.away_player_1_uuid,
+                        a.away_player_2_uuid,
+                        a.away_player_3_uuid
+                    ];
+                }
+
+                if(![...selectedPlayers].every(p => lineup.includes(p))){
+                    return;
+                }
+            }
+        }
+
+
+        const playerUuid = a.action_player_uuid;
+        const type = a.action_type;
+
+
+        // Crear jugador
+        if(!playerStats[playerUuid]){
+
+            playerStats[playerUuid] = {
+                playerUuid,
+                playerName: a.action_player_name,
+                totalShots: 0,
+                types: {}
+            };
+        }
+
+
+        const player = playerStats[playerUuid];
+
+
+        // Crear tipus de tir
+        if(!player.types[type]){
+
+            player.types[type] = {
+                attempts: 0,
+                turnovers: 0,
+                points: 0
+            };
+        }
+
+
+        const stats = player.types[type];
+
+
+        // Pèrdua
+        if(a.action_result === "TO"){
+
+            stats.turnovers++;
+
+        }
+
+        // Tir
+        else{
+
+            stats.attempts++;
+            player.totalShots++;
+
+            stats.points += getPoints(a.action_result);
+        }
+
+    });
+
+
+    // Calcular mètriques
+    Object.values(playerStats).forEach(player => {
+
+        Object.values(player.types).forEach(stats => {
+
+            stats.usage = player.totalShots
+                ? stats.attempts / player.totalShots
+                : 0;
+
+            stats.ppa = stats.attempts
+                ? stats.points / stats.attempts
+                : 0;
+
+            stats.tov =
+                (stats.attempts + stats.turnovers)
+                    ? stats.turnovers /
+                      (stats.attempts + stats.turnovers)
+                    : 0;
+        });
+
+    });
+
+
+    return playerStats;
+}
+
+
+function renderTable(){
+
+    const playerStats = calculateTableStats(
+        getFilteredActions()
+    );
+
+    const table = document.getElementById("statsTable");
+
+    const thead = table.querySelector("thead");
+    const tbody = table.querySelector("tbody");
+
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+
+// ---------------------------
+// AMPLADA DE LES COLUMNES
+// ---------------------------
+
+const oldColgroup = table.querySelector("colgroup");
+
+if(oldColgroup){
+    oldColgroup.remove();
+}
+
+const colgroup = document.createElement("colgroup");
+
+// Columna jugador
+const playerCol = document.createElement("col");
+playerCol.style.width = "160px";
+colgroup.appendChild(playerCol);
+
+// Totes les columnes de tipus de tir
+SHOT_ORDER.forEach(() => {
+    const col = document.createElement("col");
+    col.style.width = "60px";
+    colgroup.appendChild(col);
+});
+
+table.insertBefore(colgroup, thead);
+
+
+    // ---------------------------
+    // CAPÇALERA
+    // ---------------------------
+
+    const headerRow = document.createElement("tr");
+
+    const playerHeader = document.createElement("th");
+
+    playerHeader.textContent = "JUGADOR";
+
+    headerRow.appendChild(playerHeader);
+
+
+    SHOT_ORDER.forEach(type => {
+
+        const th = document.createElement("th");
+
+        th.textContent = type;
+
+        headerRow.appendChild(th);
+    });
+
+
+    thead.appendChild(headerRow);
+
+
+    // ---------------------------
+    // JUGADORS
+    // ---------------------------
+
+    const players = Object.values(playerStats);
+
+    // Ordenar pel dorsal dels jugadors
+    players.sort((a,b) => {
+
+        const playerA = currentPlayers.find(
+            p => p.uuid === a.playerUuid
+        );
+
+        const playerB = currentPlayers.find(
+            p => p.uuid === b.playerUuid
+        );
+
+        return (playerA?.shirt_number ?? 999) -
+               (playerB?.shirt_number ?? 999);
+    });
+
+
+    players.forEach(player => {
+
+        const row = document.createElement("tr");
+
+
+        // ---------------------------
+        // JUGADOR
+        // ---------------------------
+
+        const playerCell = document.createElement("td");
+
+        const playerData = currentPlayers.find(
+            p => p.uuid === player.playerUuid
+        );
+
+        const number = playerData?.shirt_number ?? "";
+
+        playerCell.innerHTML = `
+            <span class="table-player-number">
+                #${number}
+            </span>
+            <span class="table-player-name">
+                ${player.playerName}
+            </span>
+        `;
+
+        row.appendChild(playerCell);
+
+
+        // ---------------------------
+        // TIPUS DE TIR
+        // ---------------------------
+
+        SHOT_ORDER.forEach(type => {
+
+            const cell = document.createElement("td");
+
+const stats = player.types[type];
+
+if(!stats || (stats.attempts === 0)){
+
+    cell.textContent = "—";
+
+}else{
+
+    // ------------------------------------------------
+    // VALOR DE LA MÈTRICA SELECCIONADA
+    // ------------------------------------------------
+
+    let value;
+
+    if(currentTableMetric === "usage"){
+
+        value = (stats.usage * 100).toFixed(1) + "%";
+
+    }
+
+    else if(currentTableMetric === "ppa"){
+
+        value = stats.ppa.toFixed(2);
+
+    }
+
+    else if(currentTableMetric === "tov"){
+
+        value = (stats.tov * 100).toFixed(1) + "%";
+    }
+
+
+    // ------------------------------------------------
+    // COLOR DE FONS
+    // Sempre depèn de USG + PPA
+    // ------------------------------------------------
+
+    const backgroundColor = getTableCellColor(
+        stats.usage,
+        stats.ppa
+    );
+
+    if(backgroundColor){
+        cell.style.backgroundColor = backgroundColor;
+    }
+
+
+    // ------------------------------------------------
+    // RODONETA DE TO%
+    // Independent del color de la cel·la
+    // ------------------------------------------------
+
+    if(hasHighTurnover(stats)){
+
+        cell.classList.add("high-turnover");
+
+        const dot = document.createElement("span");
+
+        dot.className = "turnover-dot";
+
+        cell.appendChild(dot);
+    }
+
+
+    // ------------------------------------------------
+    // VALOR
+    // ------------------------------------------------
+
+    const valueSpan = document.createElement("span");
+
+    valueSpan.textContent = value;
+
+    cell.appendChild(valueSpan);
+}
+
+row.appendChild(cell);
+        });
+
+
+        tbody.appendChild(row);
+    });
+}
+
+function initTableMetricToggle(){
+
+    const buttons = {
+        tableMetricUSG: "usage",
+        tableMetricPPA: "ppa",
+        tableMetricTOV: "tov"
+    };
+
+
+    Object.entries(buttons).forEach(([id, metric]) => {
+
+        const btn = document.getElementById(id);
+
+        btn.onclick = () => {
+
+            currentTableMetric = metric;
+
+
+            Object.keys(buttons).forEach(otherId => {
+
+                document
+                    .getElementById(otherId)
+                    .classList.remove("active");
+            });
+
+
+            btn.classList.add("active");
+
+            renderTable();
+        };
+    });
+}
+
+
+function updateView(){
+
+    const chart = document.getElementById("shotChartContainer");
+    const rankings = document.getElementById("rankings");
+    const table = document.getElementById("tableContainer");
+
+    const chartBtn = document.getElementById("viewChart");
+    const rankingsBtn = document.getElementById("viewRankings");
+    const tableBtn = document.getElementById("viewTable");
+
+
+    // ---------------------------
+    // OCULTAR
+    // ---------------------------
+
+    chart.style.display = "none";
+    rankings.style.display = "none";
+    table.style.display = "none";
+
+
+    // ---------------------------
+    // BOTONS
+    // ---------------------------
+
+    chartBtn.classList.remove("active");
+    rankingsBtn.classList.remove("active");
+    tableBtn.classList.remove("active");
+
+
+    // ---------------------------
+    // VISTA
+    // ---------------------------
+
+    if(currentView === "chart"){
+
+        chart.style.display = "flex";
+        chartBtn.classList.add("active");
+
+    }
+
+    else if(currentView === "rankings"){
+
+        rankings.style.display = "grid";
+        rankingsBtn.classList.add("active");
+
+    }
+
+    else if(currentView === "table"){
+
+        table.style.display = "block";
+        tableBtn.classList.add("active");
+
+        renderTable();
+    }
+}
+
+function initViewToggle(){
+
+    document.getElementById("viewChart").onclick = () => {
+
+        currentView = "chart";
+
+        updateView();
+    };
+
+
+    document.getElementById("viewRankings").onclick = () => {
+
+        currentView = "rankings";
+
+        updateView();
+    };
+
+
+    document.getElementById("viewTable").onclick = () => {
+
+        currentView = "table";
+
+        updateView();
+    };
+
+
+    // Vista inicial
+    updateView();
+}
+
+
 
 function renderShotLegend(){
 
@@ -1009,8 +1865,7 @@ function initActionButtons(){
 			
             		btn.classList.add("active");
 
-			renderPlayerCards(currentPlayers);
-            		renderRankings();
+			refreshCurrentView();
 		};
 	});
 
@@ -1176,29 +2031,25 @@ async function loadData() {
 
 	renderCompetitionFilters();
 	renderRoundFilters();
-	renderRankings();
-	renderPlayerCards(currentPlayers);
+	refreshCurrentView();
 	updateActionButtons();
 
 	document.getElementById("allActions").onclick = () => {
 		transitionFilter = "all";
     		updateActionButtons();
-renderPlayerCards(currentPlayers);
-renderRankings();
+refreshCurrentView();
 	};
 
 	document.getElementById("onlyCheckballs").onclick = () => {
 		transitionFilter = "check";
 		updateActionButtons();
-renderPlayerCards(currentPlayers);
-renderRankings();
+refreshCurrentView();
 	};
 
 	document.getElementById("onlyTrans").onclick = () => {
 		transitionFilter = "nocheck";
     		updateActionButtons();
-renderPlayerCards(currentPlayers);
-renderRankings();
+refreshCurrentView();
 	};
 
 	updateActionButtons();
@@ -1387,8 +2238,7 @@ function renderCompetitionFilters(){
     else selectedCompetitions.delete(comp);
 
     renderRoundFilters();
-    renderPlayerCards(currentPlayers);
-    renderRankings();
+refreshCurrentView();
 };
 		
 		container.appendChild(label);
@@ -1416,8 +2266,7 @@ function renderRoundFilters(){
     if(e.target.checked) selectedRounds.add(round);
     else selectedRounds.delete(round);
 
-    renderPlayerCards(currentPlayers);
-    renderRankings();
+   refreshCurrentView();
 };
 
 	        container.appendChild(label);
@@ -1728,11 +2577,9 @@ const teamChartStats = calculateShotStats(
 	container.innerHTML="";
 
 	if(rankingFilter === "rivalData" || rankingFilter === "oppData"){
-		container.style.display = "none";
-		return;
-	}else{
-		container.style.display = "grid";   // o "flex" si així el tens al CSS
-	}
+    container.innerHTML = "";
+    return;
+}
 
 	createColumn(container, "TOP USAGE", rankings.usage, x=>(x.usage*100).toFixed(1)+" %");
 	createColumn(container, "TOP EFICIENCIA", rankings.efficiency, x=>x.ppa.toFixed(2)+" pts/acc");
@@ -1826,6 +2673,17 @@ btn.onclick = () => {
 	}
 };
 
+
+function refreshCurrentView(){
+
+    renderPlayerCards(currentPlayers);
+    renderRankings();
+
+    if(currentView === "table"){
+        renderTable();
+    }
+}
+
 /* ---------------------------
    INIT
 ---------------------------- */
@@ -1837,6 +2695,8 @@ window.addEventListener("resize", () => {
 loadTeams();
 renderShotLegend();
 initPlayerTeamButtons();
+initViewToggle();
+initTableMetricToggle();
 
 </script>
 </body>
