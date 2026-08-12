@@ -792,6 +792,7 @@
 		<div id="tableContainer">
 
     <div id="tableMetricToggle">
+    <button id="tableMetricATT" class="table-metric-btn">TIRS</button>
         <button id="tableMetricUSG" class="table-metric-btn active">USG%</button>
         <button id="tableMetricPPA" class="table-metric-btn">PPA</button>
         <button id="tableMetricTOV" class="table-metric-btn">TO%</button>
@@ -838,7 +839,7 @@ const SHOT_ORDER = ["PnR handler", "PnR roller", "PnR roll seal", "PnPop", "Flar
 const SHOT_COLORS = {"PnR handler": "#0D47A1", "PnR roller": "#1976D2", "PnR roll seal": "#42A5F5", "PnPop": "#BBDEFB", "Flare": "#8B0000", "Pindown": "#D32F2F", "Interior": "#FF8A80", "Screener": "#FFEBEE", "HO catcher": "#D7CCC8", "HO giver": "#5D4037", "Iso": "#1B5E20", "Low post": "#4CAF50", "Iso seal": "#C8E6C9", "FB 2": "#E65100", "FB closeout": "#FB8C00", "FB seal": "#FFE0B2", "CnShoot": "#AD1457", "CnDrive": "#F8BBD0", "Cut": "#4A148C", "Putback": "#8E24AA", "Misc": "#E1BEE7"};
 let chartWidth = 0;
 let currentView = "chart";
-let currentTableMetric = "usage";
+let currentTableMetric = "attempts";
 
 const LEAGUE_AVG_PPA = 0.9;
 const LEAGUE_AVG_TOV = 0.15;
@@ -1218,20 +1219,26 @@ if(!stats || (stats.attempts === 0)){
 
     if(currentTableMetric === "usage"){
 
-        value = (stats.usage * 100).toFixed(1) + "%";
+    value = (stats.usage * 100).toFixed(1) + "%";
 
-    }
+}
 
-    else if(currentTableMetric === "ppa"){
+else if(currentTableMetric === "ppa"){
 
-        value = stats.ppa.toFixed(2);
+    value = stats.ppa.toFixed(2);
 
-    }
+}
 
-    else if(currentTableMetric === "tov"){
+else if(currentTableMetric === "tov"){
 
-        value = (stats.tov * 100).toFixed(1) + "%";
-    }
+    value = (stats.tov * 100).toFixed(1) + "%";
+
+}
+
+else if(currentTableMetric === "attempts"){
+
+    value = stats.attempts;
+}
 
 
     // ------------------------------------------------
@@ -1287,11 +1294,12 @@ row.appendChild(cell);
 
 function initTableMetricToggle(){
 
-    const buttons = {
-        tableMetricUSG: "usage",
-        tableMetricPPA: "ppa",
-        tableMetricTOV: "tov"
-    };
+const buttons = {
+    tableMetricUSG: "usage",
+    tableMetricPPA: "ppa",
+    tableMetricTOV: "tov",
+    tableMetricATT: "attempts"
+};
 
 
     Object.entries(buttons).forEach(([id, metric]) => {
