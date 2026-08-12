@@ -773,9 +773,9 @@
 
 	<div id="content">
 		<div id="viewToggle">
-    			<button id="viewChart" class="view-toggle-btn active">GRÀFIC</button>
+    			<button id="viewTable" class="view-toggle-btn active">TAULA</button>
+    			<button id="viewChart" class="view-toggle-btn">GRÀFIC</button>
     			<button id="viewRankings" class="view-toggle-btn">RANKINGS</button>
-    			<button id="viewTable" class="view-toggle-btn">TAULA</button>
 		</div>
 
     		<div id="playerCards"></div>
@@ -792,10 +792,11 @@
 		<div id="tableContainer">
 
     <div id="tableMetricToggle">
-    <button id="tableMetricATT" class="table-metric-btn active">TIRS</button>
+    	<button id="tableMetricATT" class="table-metric-btn active">TIRS</button>
         <button id="tableMetricUSG" class="table-metric-btn">USG%</button>
         <button id="tableMetricPPA" class="table-metric-btn">PPA</button>
         <button id="tableMetricTOV" class="table-metric-btn">TO%</button>
+	<button id="tableMetricFOUL" class="table-metric-btn">FALTES</button>
     </div>
 
     <div id="tableWrapper">
@@ -838,15 +839,15 @@ let selectedShotType = null;
 const SHOT_ORDER = ["PnR handler", "PnR roller", "PnR roll seal", "PnPop", "Flare", "Pindown", "Interior", "Screener", "HO catcher", "HO giver", "Iso", "Low post", "Iso 		seal", "FB 2", "FB closeout", "FB seal", "CnShoot", "CnDrive", "Cut", "Putback", "Misc"];
 const SHOT_COLORS = {"PnR handler": "#0D47A1", "PnR roller": "#1976D2", "PnR roll seal": "#42A5F5", "PnPop": "#BBDEFB", "Flare": "#8B0000", "Pindown": "#D32F2F", "Interior": "#FF8A80", "Screener": "#FFEBEE", "HO catcher": "#D7CCC8", "HO giver": "#5D4037", "Iso": "#1B5E20", "Low post": "#4CAF50", "Iso seal": "#C8E6C9", "FB 2": "#E65100", "FB closeout": "#FB8C00", "FB seal": "#FFE0B2", "CnShoot": "#AD1457", "CnDrive": "#F8BBD0", "Cut": "#4A148C", "Putback": "#8E24AA", "Misc": "#E1BEE7"};
 let chartWidth = 0;
-let currentView = "chart";
+let currentView = "table";
 let currentTableMetric = "attempts";
 
 const LEAGUE_AVG_PPA = 0.9;
 const LEAGUE_AVG_TOV = 0.15;
 
 const USG_THRESHOLD = 0.10;
-const PPA_HIGH = 0.71;
-const PPA_LOW = 0.51;
+const PPA_HIGH = 0.9;
+const PPA_LOW = 0.7;
 
 
 function getTableCellColor(usage, ppa){
@@ -892,6 +893,7 @@ function calculateTableStats(actions){
 
     const playerStats = {};
 
+
     actions.forEach(a => {
 
         if(!a.action_type) return;
@@ -899,107 +901,171 @@ function calculateTableStats(actions){
 
         // Excloure accions que no són tirs/accions de tir
         if(a.action_type.startsWith("REBOUND")) return;
-        if(a.action_type.startsWith("FOUL")) return;
         if(a.action_type.startsWith("FREE THROW")) return;
 
         // Filtre checkball
         if(transitionFilter === "check" && a.checkball != 1) return;
         if(transitionFilter === "nocheck" && a.checkball != 0) return;
 
+const isFoul = a.action_type.startsWith("FOUL;");
+
         // ---------------------------
-        // FILTRE DE DADES
-        // ---------------------------
+// FILTRE DE DADES
+// ---------------------------
 
-        if(rankingFilter === "playerData"){
+if(rankingFilter === "playerData"){
 
-            if(a.action_team_uuid !== selectedTeam){
-                return;
-            }
+    // Per a les faltes, només acceptem jugadors del nostre equip
+    if(isFoul){
 
-            if(
-                selectedPlayers.size &&
-                !selectedPlayers.has(a.action_player_uuid)
-            ){
-                return;
-            }
+        const isOurPlayer = currentPlayers.some(
+            p => p.uuid === a.action_player_uuid
+        );
+
+        if(!isOurPlayer){
+            return;
         }
 
-        else if(rankingFilter === "teamData"){
+    }else{
 
-            if(a.action_team_uuid !== selectedTeam){
-                return;
-            }
-
-            if(selectedPlayers.size){
-
-                let lineup;
-
-                if(a.home_team_uuid === selectedTeam){
-
-                    lineup = [
-                        a.home_player_1_uuid,
-                        a.home_player_2_uuid,
-                        a.home_player_3_uuid
-                    ];
-
-                }else{
-
-                    lineup = [
-                        a.away_player_1_uuid,
-                        a.away_player_2_uuid,
-                        a.away_player_3_uuid
-                    ];
-                }
-
-                if(![...selectedPlayers].every(p => lineup.includes(p))){
-                    return;
-                }
-            }
+        // Accions normals: han de ser del nostre equip
+        if(a.action_team_uuid !== selectedTeam){
+            return;
         }
 
-        else if(rankingFilter === "rivalData"){
+    }
 
-            if(a.action_team_uuid === selectedTeam){
-                return;
-            }
+    // Si hi ha jugadors seleccionats, només els seus
+    if(
+        selectedPlayers.size &&
+        !selectedPlayers.has(a.action_player_uuid)
+    ){
+        return;
+    }
+}
+
+
+else if(rankingFilter === "teamData"){
+
+    // Per a les faltes només acceptem jugadors del nostre equip
+    if(isFoul){
+
+        const isOurPlayer = currentPlayers.some(
+            p => p.uuid === a.action_player_uuid
+        );
+
+        if(!isOurPlayer){
+            return;
         }
 
-        else if(rankingFilter === "oppData"){
+    }else{
 
-            if(a.action_team_uuid === selectedTeam){
-                return;
-            }
-
-            if(selectedPlayers.size){
-
-                let lineup;
-
-                if(a.home_team_uuid === selectedTeam){
-
-                    lineup = [
-                        a.home_player_1_uuid,
-                        a.home_player_2_uuid,
-                        a.home_player_3_uuid
-                    ];
-
-                }else{
-
-                    lineup = [
-                        a.away_player_1_uuid,
-                        a.away_player_2_uuid,
-                        a.away_player_3_uuid
-                    ];
-                }
-
-                if(![...selectedPlayers].every(p => lineup.includes(p))){
-                    return;
-                }
-            }
+        if(a.action_team_uuid !== selectedTeam){
+            return;
         }
+    }
+
+    if(selectedPlayers.size){
+
+        let lineup;
+
+        if(a.home_team_uuid === selectedTeam){
+
+            lineup = [
+                a.home_player_1_uuid,
+                a.home_player_2_uuid,
+                a.home_player_3_uuid
+            ];
+
+        }else{
+
+            lineup = [
+                a.away_player_1_uuid,
+                a.away_player_2_uuid,
+                a.away_player_3_uuid
+            ];
+        }
+
+        if(![...selectedPlayers].every(p => lineup.includes(p))){
+            return;
+        }
+    }
+}
+
+
+else if(rankingFilter === "rivalData"){
+
+    // Les faltes del rival
+    if(isFoul){
+
+        const isRivalPlayer = currentPlayers.every(
+            p => p.uuid !== a.action_player_uuid
+        );
+
+        if(!isRivalPlayer){
+            return;
+        }
+
+    }else{
+
+        if(a.action_team_uuid === selectedTeam){
+            return;
+        }
+    }
+}
+
+
+else if(rankingFilter === "oppData"){
+
+    if(isFoul){
+
+        const isOurPlayer = currentPlayers.some(
+            p => p.uuid === a.action_player_uuid
+        );
+
+        if(!isOurPlayer){
+            return;
+        }
+
+    }else{
+
+        if(a.action_team_uuid === selectedTeam){
+            return;
+        }
+    }
+
+    if(selectedPlayers.size){
+
+        let lineup;
+
+        if(a.home_team_uuid === selectedTeam){
+
+            lineup = [
+                a.home_player_1_uuid,
+                a.home_player_2_uuid,
+                a.home_player_3_uuid
+            ];
+
+        }else{
+
+            lineup = [
+                a.away_player_1_uuid,
+                a.away_player_2_uuid,
+                a.away_player_3_uuid
+            ];
+        }
+
+        if(![...selectedPlayers].every(p => lineup.includes(p))){
+            return;
+        }
+    }
+}
 
 
         const playerUuid = a.action_player_uuid;
-        const type = a.action_type;
+const type = isFoul
+    ? a.action_type.split(";")[1]
+    : a.action_type;
 
 
         // Crear jugador
@@ -1018,34 +1084,48 @@ function calculateTableStats(actions){
 
 
         // Crear tipus de tir
-        if(!player.types[type]){
+if(!player.types[type]){
 
-            player.types[type] = {
-                attempts: 0,
-                turnovers: 0,
-                points: 0
-            };
-        }
+    player.types[type] = {
+        attempts: 0,
+        turnovers: 0,
+        fouls: 0,
+        points: 0
+    };
+}
 
 
         const stats = player.types[type];
 
 
-        // Pèrdua
-        if(a.action_result === "TO"){
 
-            stats.turnovers++;
 
-        }
+// Pèrdua
+if(a.action_result === "TO"){
 
-        // Tir
-        else{
+    stats.turnovers++;
 
-            stats.attempts++;
-            player.totalShots++;
+}
 
-            stats.points += getPoints(a.action_result);
-        }
+// Acció que acaba en falta
+else if(
+    a.action_result === "1+PF" ||
+    a.action_result === "2+PF" ||
+    isFoul
+){
+
+    stats.fouls++;
+
+}
+
+// Tir
+else{
+
+    stats.attempts++;
+    player.totalShots++;
+
+    stats.points += getPoints(a.action_result);
+}
 
     });
 
@@ -1068,6 +1148,12 @@ function calculateTableStats(actions){
                     ? stats.turnovers /
                       (stats.attempts + stats.turnovers)
                     : 0;
+
+stats.foulRate =
+    (stats.attempts + stats.turnovers + stats.fouls)
+        ? stats.fouls /
+          (stats.attempts + stats.turnovers + stats.fouls)
+        : 0;
         });
 
     });
@@ -1239,6 +1325,10 @@ else if(currentTableMetric === "attempts"){
 
     value = stats.attempts;
 }
+else if(currentTableMetric === "foulRate"){
+
+    value = (stats.foulRate * 100).toFixed(1) + "%";
+}
 
 
     // ------------------------------------------------
@@ -1298,7 +1388,8 @@ const buttons = {
     tableMetricUSG: "usage",
     tableMetricPPA: "ppa",
     tableMetricTOV: "tov",
-    tableMetricATT: "attempts"
+    tableMetricATT: "attempts",
+    tableMetricFOUL: "foulRate"
 };
 
 
