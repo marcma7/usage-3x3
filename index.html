@@ -740,7 +740,7 @@ function calculateTableStats(actions){
         if(transitionFilter === "check" && a.checkball != 1) return;
         if(transitionFilter === "nocheck" && a.checkball != 0) return;
 
-		const isFoul = a.action_type.startsWith("FOUL;");
+		const isFoul = a.action_type.startsWith("FOUL");
 		
 		if(rankingFilter === "playerData") {
 
