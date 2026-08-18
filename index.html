@@ -744,59 +744,64 @@ function calculateTableStats(actions){
 		
 		if(rankingFilter === "playerData") {
 
-    if(isFoul) {
+    if(isFoul){
 
-        // En una falta, action_player_uuid és el jugador que REP la falta.
-        // Només volem la falta si aquest jugador és del nostre equip.
-        const isOurPlayer = currentPlayers.some(
-            p => p.uuid === a.action_player_uuid
+        // En una falta no ofensiva:
+        // action_player_uuid = jugador que REP la falta
+        const playerTeam = getPlayerTeamFromAction(
+            a,
+            a.action_player_uuid
         );
 
-        if(!isOurPlayer) return;
+        // Només volem jugadors del nostre equip
+        if(playerTeam !== selectedTeam) return;
 
     } else {
 
-        // Accions normals: action_team_uuid és l'equip que fa l'acció.
+        // Accions normals
         if(a.action_team_uuid !== selectedTeam) return;
-
     }
 
-    // Filtre de jugadors seleccionats
-    if(selectedPlayers.size &&
-       !selectedPlayers.has(a.action_player_uuid)) return;
+    if(
+        selectedPlayers.size &&
+        !selectedPlayers.has(a.action_player_uuid)
+    ){
+        return;
+    }
 
 
 } else if(rankingFilter === "teamData") {
 
-    if(isFoul) {
+    if(isFoul){
 
-        // La falta compta per l'equip del jugador que LA REP.
-        const isOurPlayer = currentPlayers.some(
-            p => p.uuid === a.action_player_uuid
+        // La falta es comptabilitza per l'equip
+        // del jugador que LA REP.
+        const playerTeam = getPlayerTeamFromAction(
+            a,
+            a.action_player_uuid
         );
 
-        if(!isOurPlayer) return;
+        if(playerTeam !== selectedTeam) return;
 
     } else {
 
-        // Accions normals: només les del nostre equip.
         if(a.action_team_uuid !== selectedTeam) return;
-
     }
 
-    // Si hi ha jugadors seleccionats,
-    // tots han d'estar en pista.
-    if(selectedPlayers.size) {
+    if(selectedPlayers.size){
 
         let lineup;
 
-        if(a.home_team_uuid === selectedTeam) {
+        if(a.home_team_uuid === selectedTeam){
+
             lineup = [
                 a.home_player_1_uuid,
                 a.home_player_2_uuid,
                 a.home_player_3_uuid
             ];
+
         } else {
+
             lineup = [
                 a.away_player_1_uuid,
                 a.away_player_2_uuid,
@@ -804,67 +809,72 @@ function calculateTableStats(actions){
             ];
         }
 
-        if(![...selectedPlayers].every(p => lineup.includes(p))) return;
+        if(
+            ![...selectedPlayers].every(
+                p => lineup.includes(p)
+            )
+        ){
+            return;
+        }
     }
 
 
 } else if(rankingFilter === "rivalData") {
 
-    if(isFoul) {
+    if(isFoul){
 
-        // Falta rebuda per un jugador nostre NO és una
-        // acció del rival en aquesta taula.
-        const isOurPlayer = currentPlayers.some(
-            p => p.uuid === a.action_player_uuid
+        // En aquest cas volem la falta rebuda
+        // per un jugador del RIVAL.
+        const playerTeam = getPlayerTeamFromAction(
+            a,
+            a.action_player_uuid
         );
 
-        if(isOurPlayer) return;
+        if(playerTeam === selectedTeam) return;
 
-        // Si el jugador que rep la falta és del rival,
-        // llavors sí que és una falta que volem al rival.
-        
     } else {
 
-        // Accions normals del rival.
+        // Accions normals del rival
         if(a.action_team_uuid === selectedTeam) return;
-
     }
 
 
 } else if(rankingFilter === "oppData") {
 
-    if(isFoul) {
+    if(isFoul){
 
-        // Aquí volem faltes comeses pel rival
-        // sobre jugadors nostres.
-        const isOurPlayer = currentPlayers.some(
-            p => p.uuid === a.action_player_uuid
+        // Volem la falta comesa pel rival
+        // sobre un jugador nostre.
+        const playerTeam = getPlayerTeamFromAction(
+            a,
+            a.action_player_uuid
         );
 
-        if(!isOurPlayer) return;
+        if(playerTeam !== selectedTeam) return;
 
-        // La falta és del rival perquè action_team_uuid
-        // és l'equip que la comet.
+        // Qui comet la falta ha de ser el rival
         if(a.action_team_uuid === selectedTeam) return;
 
     } else {
 
-        // Accions normals del rival.
+        // Accions normals del rival
         if(a.action_team_uuid === selectedTeam) return;
-
     }
 
-    if(selectedPlayers.size) {
+    if(selectedPlayers.size){
 
         let lineup;
 
-        if(a.home_team_uuid === selectedTeam) {
+        if(a.home_team_uuid === selectedTeam){
+
             lineup = [
                 a.home_player_1_uuid,
                 a.home_player_2_uuid,
                 a.home_player_3_uuid
             ];
+
         } else {
+
             lineup = [
                 a.away_player_1_uuid,
                 a.away_player_2_uuid,
@@ -872,7 +882,13 @@ function calculateTableStats(actions){
             ];
         }
 
-        if(![...selectedPlayers].every(p => lineup.includes(p))) return;
+        if(
+            ![...selectedPlayers].every(
+                p => lineup.includes(p)
+            )
+        ){
+            return;
+        }
     }
 }
 
@@ -2195,6 +2211,28 @@ function refreshCurrentView(){
     if(currentView === "table") renderTable();
 }
 
+
+	function getPlayerTeamFromAction(a, playerUuid){
+
+    if(
+        a.home_player_1_uuid === playerUuid ||
+        a.home_player_2_uuid === playerUuid ||
+        a.home_player_3_uuid === playerUuid
+    ){
+        return a.home_team_uuid;
+    }
+
+    if(
+        a.away_player_1_uuid === playerUuid ||
+        a.away_player_2_uuid === playerUuid ||
+        a.away_player_3_uuid === playerUuid
+    ){
+        return a.away_team_uuid;
+    }
+
+    return null;
+}
+	
 /* ---------------------------
    INIT
 ---------------------------- */
@@ -2212,3 +2250,4 @@ initTableMetricToggle();
 </script>
 </body>
 </html>
+
